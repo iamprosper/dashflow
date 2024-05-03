@@ -59,3 +59,6 @@ class Flow(models.Model):
     dmt = models.IntegerField(verbose_name="")
 
 
+class UploadedFile(models.Model):
+    file = models.FileField(upload_to='uploads/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)

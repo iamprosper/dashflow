@@ -13,3 +13,7 @@ class ActivityForm(forms.ModelForm):
     # def __init__(self, *args, **kwargs):
     #     super().__init__(*args, **kwargs)
     #     self.fields['code_file'].widget.attrs['readonly'] = True
+
+
+class FileUploadform(forms.Form):
+    file = forms.FileField()
