@@ -2,24 +2,16 @@ from typing import Any
 from django.db import models
 
 # Create your models here.
-CODE_FILES = {
-    'MB': "1880-1890-1891",
-    'TM': "1845-1846-1847",
-    'FX': "1117-1118-1119",
-    'FR': "1111-1112-1113",
-    'PV': "1109-1110",
-}
+
+class CodeFile(models.Model):
+    code = models.IntegerField()
+    def __str__(self):
+        return "{}".format(self.code)
+
 class Activity(models.Model):
     name = models.CharField(max_length=200)
-    code_choice = (
-        ('MB', "888"),
-        ('TM', "8845"),
-        ('FX', "119"),
-        ('FR', "1010"),
-        ('PV', "1010"),
-    )
-    code_call = models.IntegerField()
-    code_file = models.IntegerField()
+    code = models.IntegerField()
+    code_file = models.ManyToManyField(CodeFile)
 
     def __str__(self) -> str:
         return self.name
