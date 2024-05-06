@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Activity
+from .models import Activity, UploadedFile
 
 
 class ActivityForm(forms.ModelForm):
@@ -15,5 +15,12 @@ class ActivityForm(forms.ModelForm):
     #     self.fields['code_file'].widget.attrs['readonly'] = True
 
 
-class FileUploadform(forms.Form):
-    file = forms.FileField()
+"""class FileUploadform(forms.Model):
+    class Meta:
+        model = UploadedFile
+        file = forms.FileField()"""
+
+class FileUploadForm(forms.ModelForm):
+    class Meta:
+        model = UploadedFile
+        fields = ['file']

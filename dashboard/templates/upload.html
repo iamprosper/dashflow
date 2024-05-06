@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fike Uppload</title>
+    <title>Csv upload</title>
 </head>
 <body>
-    {% csrf_token %}
-    {{form}}
-    <button type="submit">Upload</button>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{form}}
+        <button type="submit">Upload</button>
+    </form>
 </body>
 </html>
