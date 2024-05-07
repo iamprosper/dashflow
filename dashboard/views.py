@@ -19,7 +19,7 @@ def upload_file(request):
         form = FileUploadForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('lazy')
+            return redirect('process')
     else:
         form = FileUploadForm()
     return render(request, 'upload.html', {'form': form})
@@ -33,24 +33,39 @@ def lazy_display(request):
 def stream_csv_data(file_path):
     with open(file_path, 'rb') as f:
         encoding = chardet.detect(f.read())['encoding']
-    with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
+    
+    df = pandas.read_csv(file_path, encoding=encoding)
+    handled_values =  df["ConvDuration"].apply(lambda x: 1 if x >=10 else 0)
+    lost_ivr_values = df.apply(lambda row: 1 if row['ConvDuration'] == 0
+                              and row["WaitDuration"] == 0
+                              and row["OverflowDuration"] == 0 else 0, axis=1)
+    dates_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[0])
+    hours_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[1].split('.')[0])
+    df.insert(5, 'handled', handled_values)
+    df.insert(6, 'lost_ivr', lost_ivr_values)
+    df.insert(9, 'dates', dates_values)
+    df.insert(10, 'hours', hours_values)
+    df.to_excel('data.xlsx',index=False)
+    """with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
-            yield ','.join(row) + '\n'
+            yield ','.join(row) + '\n'"""
 
 def process_file(request):
     uploaded_file = UploadedFile.objects.last()
     if uploaded_file:
         file_path = uploaded_file.file.path
+        stream_csv_data(file_path)
         """with open(file_path, 'r') as file:
             reader = csv.reader(file)
             header = next(reader)
-            yield header
-            # data = [row for row in reader]
-            for row in reader:
-                yield ','.join(row) + '\n'"""
-        response = StreamingHttpResponse(stream_csv_data(file_path), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="data.csv"'
+            # yield header
+            data = [row for row in reader]"""
+            # for row in reader:
+            #     yield ','.join(row) + '\n'
+        response = render(request, 'success.html')
+        # response = StreamingHttpResponse(stream_csv_data(file_path), content_type='text/csv')
+        # response['Content-Disposition'] = 'attachment; filename="data.csv"'
         return response
         
         """df = pandas.read_csv(file_path, encoding='utf-32-be')
