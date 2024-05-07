@@ -1,5 +1,6 @@
 import csv
-from django.http import HttpResponse
+import chardet
+from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 from django.templatetags import static
 import pandas
@@ -18,7 +19,7 @@ def upload_file(request):
         form = FileUploadForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('process')
+            return redirect('lazy')
     else:
         form = FileUploadForm()
     return render(request, 'upload.html', {'form': form})
@@ -26,6 +27,16 @@ def upload_file(request):
 def upload_success(request):
     return render(request, 'success.html')
 
+def lazy_display(request):
+    return render(request, 'lazy_display.html')
+
+def stream_csv_data(file_path):
+    with open(file_path, 'rb') as f:
+        encoding = chardet.detect(f.read())['encoding']
+    with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for row in csv_reader:
+            yield ','.join(row) + '\n'
 
 def process_file(request):
     uploaded_file = UploadedFile.objects.last()
@@ -34,14 +45,20 @@ def process_file(request):
         """with open(file_path, 'r') as file:
             reader = csv.reader(file)
             header = next(reader)
-            data = [row for row in reader]"""
+            yield header
+            # data = [row for row in reader]
+            for row in reader:
+                yield ','.join(row) + '\n'"""
+        response = StreamingHttpResponse(stream_csv_data(file_path), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="data.csv"'
+        return response
         
-        df = pandas.read_csv(file_path, encoding='utf-32-be')
+        """df = pandas.read_csv(file_path, encoding='utf-32-be')
         writer = pandas.ExcelWriter()
         excel_data = df.to_excel('ext_29_04.xlsx', sheet_name="Data", index=False)
         response = HttpResponse(excel_data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename="ext_29_04.xlsx"'
-        return response
+        return response"""
         # return render(request, 'process.html', {'header': header, 'data': data})
     else:
         return HttpResponse("No CSV File uploaded")

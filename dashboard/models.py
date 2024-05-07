@@ -62,3 +62,7 @@ class Flow(models.Model):
 class UploadedFile(models.Model):
     file = models.FileField(upload_to='uploads/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        # return "{}".format(self.file.split("/")[1])
+        return "{}".format(self.file.name.split("/")[1])
