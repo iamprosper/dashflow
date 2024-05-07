@@ -45,7 +45,9 @@ def stream_csv_data(file_path):
     df.insert(6, 'lost_ivr', lost_ivr_values)
     df.insert(9, 'dates', dates_values)
     df.insert(10, 'hours', hours_values)
-    df.to_excel('data.xlsx',index=False)
+    df['hour'] = pandas.to_datetime(df['hours']).dt.hour
+    filtered_rows = df[(df['hour'] >=7 ) &(df['hour'] <= 21) ]
+    filtered_rows.to_excel('data.xlsx',index=False)
     """with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
