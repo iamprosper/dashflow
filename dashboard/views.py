@@ -31,21 +31,30 @@ def lazy_display(request):
     return render(request, 'lazy_display.html')
 
 def stream_csv_data(file_path):
+
+    # Getting the csv file encoding
     with open(file_path, 'rb') as f:
         encoding = chardet.detect(f.read())['encoding']
     
+    # Reading the file with pandas library
     df = pandas.read_csv(file_path, encoding=encoding)
+
+    # Adding more column for analysis
     handled_values =  df["ConvDuration"].apply(lambda x: 1 if x >=10 else 0)
     lost_ivr_values = df.apply(lambda row: 1 if row['ConvDuration'] == 0
                               and row["WaitDuration"] == 0
                               and row["OverflowDuration"] == 0 else 0, axis=1)
     dates_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[0])
     hours_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[1].split('.')[0])
+
+    # Adding new column to the csv file (optional)
     df.insert(5, 'handled', handled_values)
     df.insert(6, 'lost_ivr', lost_ivr_values)
     df.insert(9, 'dates', dates_values)
     df.insert(10, 'hours', hours_values)
     df['hour'] = pandas.to_datetime(df['hours'], format='%H:%M:%S').dt.hour
+
+    # Filtering rows to obtain precise call values
     filtered_rows = df[(df['hour'] >=7 ) &(df['hour'] <= 21)
                        & (df['handled'] == 1)
                        & (df['LastAgent'] > 0)
@@ -53,6 +62,7 @@ def stream_csv_data(file_path):
                        & (df['LastCampaign'] <= 1847)
                        ]
 
+    # Doing operations (sum, average...)
     dmc = filtered_rows['ConvDuration'].mean()
     dma = filtered_rows['WaitDuration'].mean()
     dpt = filtered_rows['WrapupDuration'].mean()
