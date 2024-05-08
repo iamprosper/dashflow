@@ -45,9 +45,20 @@ def stream_csv_data(file_path):
     df.insert(6, 'lost_ivr', lost_ivr_values)
     df.insert(9, 'dates', dates_values)
     df.insert(10, 'hours', hours_values)
-    df['hour'] = pandas.to_datetime(df['hours']).dt.hour
-    filtered_rows = df[(df['hour'] >=7 ) &(df['hour'] <= 21) ]
-    filtered_rows.to_excel('data.xlsx',index=False)
+    df['hour'] = pandas.to_datetime(df['hours'], format='%H:%M:%S').dt.hour
+    filtered_rows = df[(df['hour'] >=7 ) &(df['hour'] <= 21)
+                       & (df['handled'] == 1)
+                       & (df['LastAgent'] > 0)
+                       & (df['LastCampaign'] >= 1845)
+                       & (df['LastCampaign'] <= 1847)
+                       ]
+
+    dmc = filtered_rows['ConvDuration'].mean()
+    dma = filtered_rows['WaitDuration'].mean()
+    dpt = filtered_rows['WrapupDuration'].mean()
+    dealed = filtered_rows['CallType'].sum()
+    # filtered_rows.to_excel('data.xlsx',index=False)
+    return ([dmc, dma, dpt, dealed])
     """with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
@@ -57,7 +68,7 @@ def process_file(request):
     uploaded_file = UploadedFile.objects.last()
     if uploaded_file:
         file_path = uploaded_file.file.path
-        stream_csv_data(file_path)
+        dmc, dma, dpt, dealed = stream_csv_data(file_path)
         """with open(file_path, 'r') as file:
             reader = csv.reader(file)
             header = next(reader)
@@ -65,7 +76,7 @@ def process_file(request):
             data = [row for row in reader]"""
             # for row in reader:
             #     yield ','.join(row) + '\n'
-        response = render(request, 'success.html')
+        response = render(request, 'success.html', {'dmc': round(dmc), 'dma': round(dma), 'dpt': round(dpt), 'dealed': dealed})
         # response = StreamingHttpResponse(stream_csv_data(file_path), content_type='text/csv')
         # response['Content-Disposition'] = 'attachment; filename="data.csv"'
         return response
