@@ -1,5 +1,7 @@
+from ast import List
 from typing import Any
 from django.db import models
+from django.forms import DateField
 
 # Create your models here.
 
@@ -27,7 +29,9 @@ class Agent(models.Model):
 
 
 class Flow(models.Model):
-    timeline = models.CharField(max_length=200)
+    start_date = models.DateField(verbose_name="Date début")
+    end_date = models.DateField(verbose_name="Date fin")
+    # timeline = models.IntegerField(verbose_name="Nombre de jours")
     activity = models.OneToOneField(
         Activity,
         on_delete =  models.CASCADE,
@@ -54,9 +58,23 @@ class Flow(models.Model):
     sl = models.IntegerField(verbose_name="SL")
     qs = models.IntegerField(verbose_name="QS")
     dma = models.IntegerField(verbose_name="DMA")
-    dmc = models.IntegerField()
-    dpt = models.IntegerField()
-    dmt = models.IntegerField(verbose_name="")
+    dmc = models.IntegerField(verbose_name="DMC")
+    dpt = models.IntegerField(verbose_name="DPT")
+    dmt = models.IntegerField(verbose_name="DMT")
+
+
+class LittleFlow(models.Model):
+    start_date = models.DateField()
+    end_date = models.DateField()
+    activity = models.OneToOneField(
+        Activity,
+        on_delete = models.CASCADE,
+        primary_key = True,
+    )
+    dealed_calls = models.IntegerField(verbose_name="Appels traités")
+    dma = models.IntegerField(verbose_name="DMA")
+    dmc = models.IntegerField(verbose_name="DMC")
+    dpt = models.IntegerField(verbose_name="DPT")
 
 
 class UploadedFile(models.Model):
