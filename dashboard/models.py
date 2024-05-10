@@ -74,6 +74,7 @@ class LittleFlow(models.Model):
     dealed_calls = models.IntegerField(verbose_name="Appels traités")
     dma = models.IntegerField(verbose_name="DMA")
     dmc = models.IntegerField(verbose_name="DMC")
+    dmt = models.IntegerField(verbose_name="DMT")
     dpt = models.IntegerField(verbose_name="DPT")
 
 

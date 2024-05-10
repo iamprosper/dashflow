@@ -6,11 +6,11 @@
     <title>CSV import</title>
 </head>
 <body>
-    <h1>Uploading a csv file</h1>
-    <form method="post" enctype="multipart/form-data">
+    <h1>Filter date for flow</h1>
+    <form method="post">
         {% csrf_token %}
-        <input type="file" name="csv_file">
-        <button type="submit">Upload</button>
-    </form>
+        {{ form}}
+        <button type="submit">Submit</button>
+    </form>    
 </body>
 </html>

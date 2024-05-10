@@ -5,21 +5,35 @@ from django.shortcuts import redirect, render
 from django.templatetags import static
 import pandas
 
-from .models import UploadedFile
+from .models import Flow, LittleFlow, UploadedFile
 
-from .forms import FileUploadForm
+from .forms import FileUploadForm, FilterFlow
 
 # Create your views here.
 def index(request):
-    return HttpResponse("Dashboard view")
+    if request.method == 'POST':
+        form = FilterFlow(request.POST)
+        if form.is_valid():
+            data = process_data(form)
+        return render(request, 'results.html', {'data': data})
+    else:
+        form = FilterFlow()
+    return render(request, 'index.html', {'form': form})
+
+def process_data(form):
+    start_date = form.cleaned_data["start_date"]
+    end_date = form.cleaned_data["end_date"]
+    data = LittleFlow.objects.filter(start_date=start_date, end_date=end_date)
+    return data
 
 
 def upload_file(request):
+    # For uploading the CSV file
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('process')
+            return redirect('process_file')
     else:
         form = FileUploadForm()
     return render(request, 'upload.html', {'form': form})
@@ -67,12 +81,25 @@ def stream_csv_data(file_path):
     dma = filtered_rows['WaitDuration'].mean()
     dpt = filtered_rows['WrapupDuration'].mean()
     dealed = filtered_rows['CallType'].sum()
+    max_date = filtered_rows['dates'].max()
+    min_date = filtered_rows['dates'].min()
+    max_hour = filtered_rows['hour'].max()
+    min_hour = filtered_rows['hour'].min()
+
+    lFlow = LittleFlow()
+    lFlow.start_date = min_date
+    lFlow.end_date = max_date
+    lFlow.dealed_calls = dealed
+    # lFlow.activity
+
+    print("Max date: {} \nMin date: {} \nMax hour: {} \nMin hour: {}".format(max_date, min_date, max_hour, min_hour))
     # filtered_rows.to_excel('data.xlsx',index=False)
     return ([dmc, dma, dpt, dealed])
     """with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
             yield ','.join(row) + '\n'"""
+
 
 def process_file(request):
     uploaded_file = UploadedFile.objects.last()
@@ -86,6 +113,7 @@ def process_file(request):
             data = [row for row in reader]"""
             # for row in reader:
             #     yield ','.join(row) + '\n'
+        
         response = render(request, 'success.html', {'dmc': round(dmc), 'dma': round(dma), 'dpt': round(dpt), 'dealed': dealed})
         # response = StreamingHttpResponse(stream_csv_data(file_path), content_type='text/csv')
         # response['Content-Disposition'] = 'attachment; filename="data.csv"'

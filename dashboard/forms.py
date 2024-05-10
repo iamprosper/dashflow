@@ -24,3 +24,10 @@ class FileUploadForm(forms.ModelForm):
     class Meta:
         model = UploadedFile
         fields = ['file']
+
+
+class FilterFlow(forms.Form):
+    start_date = forms.DateField(label='Date début', widget=forms.DateInput(attrs={'type': 'date'}))
+    end_date = forms.DateField(label='Date fin', widget=forms.DateInput(attrs={'type': 'date'}))
+    # activity_choices = Activity.objects.all().values_list('name')
+    # activity = forms.MultipleChoiceField(choices=activity_choices, widget=forms.SelectMultiple(attrs={'class': 'form-control'}))

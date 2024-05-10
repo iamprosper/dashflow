@@ -7,14 +7,26 @@
 </head>
 <body>
     <h1>Result of reading {{ name }}</h1>
-    <table>
-        {% for row in data  %}
-            <tr>
-                {% for cell in row  %}
-                    <td>{{ cell }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
+    {% if data%}
+        <table>
+            <th>Dealed</th>
+            <th>DMA</th>
+            <th>DMC</th>
+            <th>DMT</th>
+            <th>DPT</th>
+            {% for flow in data  %}
+                <tr>
+                    <td>{{flow.dealed_calls}}</td>
+                    <td>{{flow.dma}}</td>
+                    <td>{{flow.dmc}}</td>
+                    <td>{{flow.dmt}}</td>
+                    <td>{{flow.dpt}}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {%else%}
+        <p>No flow record found</p>
+        <a href="{%url 'upload' %}">Upload inbound data</a>
+    {%endif%}
 </body>
 </html>
