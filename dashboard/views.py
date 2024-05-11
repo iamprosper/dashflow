@@ -1,4 +1,5 @@
 import csv
+import datetime
 import chardet
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
@@ -50,16 +51,29 @@ def stream_csv_data(file_path):
     with open(file_path, 'rb') as f:
         encoding = chardet.detect(f.read())['encoding']
     
+    print("Encoding {}".format(encoding))
+    
     # Reading the file with pandas library
     df = pandas.read_csv(file_path, encoding=encoding)
+
+    print("Path: {}".format(file_path))
 
     # Adding more column for analysis
     handled_values =  df["ConvDuration"].apply(lambda x: 1 if x >=10 else 0)
     lost_ivr_values = df.apply(lambda row: 1 if row['ConvDuration'] == 0
                               and row["WaitDuration"] == 0
                               and row["OverflowDuration"] == 0 else 0, axis=1)
-    dates_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[0])
-    hours_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[1].split('.')[0])
+    #dates_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[0])
+    #hours_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[1].split('.')[0])
+    datetime_values_str = df["CallLocalTime"].apply(lambda x: x.split('.')[0])
+    date_py = datetime.datetime.strptime(datetime_values_str, "%Y-%m-%d %H:%M:%S").date()
+    datetime_values_date_str = datetime_values_str.apply(lambda x: x.split(' ')).apply(lambda x: x[0])
+    datetime_values_hour_str = datetime_values_str.apply(lambda x: x.split(' ')).apply(lambda x: x[1])
+
+    datetime_values_py = datetime.datetime.strptime(datetime_values_str, "%Y-%m-%d %H:%M:%S")
+    date_py = datetime_values_py.date()
+    date_str = date_py.strftime("%Y-%m-%d")
+    hour_str = date_py
 
     # Adding new column to the csv file (optional)
     df.insert(5, 'handled', handled_values)
@@ -67,6 +81,7 @@ def stream_csv_data(file_path):
     df.insert(9, 'dates', dates_values)
     df.insert(10, 'hours', hours_values)
     df['hour'] = pandas.to_datetime(df['hours'], format='%H:%M:%S').dt.hour
+
 
     # Filtering rows to obtain precise call values
     filtered_rows = df[(df['hour'] >=7 ) &(df['hour'] <= 21)
@@ -85,15 +100,17 @@ def stream_csv_data(file_path):
     min_date = filtered_rows['dates'].min()
     max_hour = filtered_rows['hour'].max()
     min_hour = filtered_rows['hour'].min()
+    """for date in df['dates']:
+        print(date)"""
 
-    lFlow = LittleFlow()
+    """lFlow = LittleFlow()
     lFlow.start_date = min_date
     lFlow.end_date = max_date
-    lFlow.dealed_calls = dealed
+    lFlow.dealed_calls = dealed"""
     # lFlow.activity
 
     print("Max date: {} \nMin date: {} \nMax hour: {} \nMin hour: {}".format(max_date, min_date, max_hour, min_hour))
-    # filtered_rows.to_excel('data.xlsx',index=False)
+    filtered_rows.to_excel('data.xlsx',index=False)
     return ([dmc, dma, dpt, dealed])
     """with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
