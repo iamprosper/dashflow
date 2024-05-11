@@ -78,8 +78,8 @@ def stream_csv_data(file_path):
     # Adding new column to the csv file (optional)
     df.insert(5, 'handled', handled_values)
     df.insert(6, 'lost_ivr', lost_ivr_values)
-    df.insert(9, 'dates', dates_values)
-    df.insert(10, 'hours', hours_values)
+    """df.insert(9, 'dates', dates_values)
+    df.insert(10, 'hours', hours_values)"""
     df['hour'] = pandas.to_datetime(df['hours'], format='%H:%M:%S').dt.hour
 
 
