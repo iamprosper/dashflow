@@ -6,7 +6,7 @@ from django.shortcuts import redirect, render
 from django.templatetags import static
 import pandas
 
-from .models import Flow, LittleFlow, UploadedFile
+from .models import Flow, LittleFlow, UploadedFile, Activity
 
 from .forms import FileUploadForm, FilterFlow
 
@@ -16,7 +16,8 @@ def index(request):
         form = FilterFlow(request.POST)
         if form.is_valid():
             data = process_data(form)
-        return render(request, 'results.html', {'data': data})
+            print("Data: {}".format(data))
+        return render(request, 'results.html', {'flow': data})
     else:
         form = FilterFlow()
     return render(request, 'index.html', {'form': form})
@@ -24,7 +25,7 @@ def index(request):
 def process_data(form):
     start_date = form.cleaned_data["start_date"]
     end_date = form.cleaned_data["end_date"]
-    data = LittleFlow.objects.filter(start_date=start_date, end_date=end_date)
+    data = LittleFlow.objects.filter(start_date=start_date, end_date=end_date)[0]
     return data
 
 
@@ -66,20 +67,23 @@ def stream_csv_data(file_path):
     #dates_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[0])
     #hours_values = df["CallLocalTime"].apply(lambda x: x.split(' ')[1].split('.')[0])
     datetime_values_str = df["CallLocalTime"].apply(lambda x: x.split('.')[0])
-    date_py = datetime.datetime.strptime(datetime_values_str, "%Y-%m-%d %H:%M:%S").date()
-    datetime_values_date_str = datetime_values_str.apply(lambda x: x.split(' ')).apply(lambda x: x[0])
-    datetime_values_hour_str = datetime_values_str.apply(lambda x: x.split(' ')).apply(lambda x: x[1])
+    datetime_py = datetime_values_str.apply(lambda x: datetime.datetime.strptime(x, "%Y-%m-%d %H:%M:%S"))
+    date_py = datetime_py.apply(lambda x: x.date())
+    dates_values = date_py.apply(lambda x: x.strftime("%Y-%m-%d"))
+    hours_values = datetime_py.apply(lambda x: "{:02d}:{:02d}:{:02d}".format(x.hour, x.minute, x.second))
+    #date_py = datetime.datetime.strptime(datetime_values_str, "%Y-%m-%d %H:%M:%S").date()
+    """datetime_values_date_str = datetime_values_str.apply(lambda x: x.split(' ')).apply(lambda x: x[0])
+    datetime_values_hour_str = datetime_values_str.apply(lambda x: x.split(' ')).apply(lambda x: x[1])"""
 
-    datetime_values_py = datetime.datetime.strptime(datetime_values_str, "%Y-%m-%d %H:%M:%S")
-    date_py = datetime_values_py.date()
-    date_str = date_py.strftime("%Y-%m-%d")
-    hour_str = date_py
+    #datetime_values_py = datetime.datetime.strptime(datetime_values_str, "%Y-%m-%d %H:%M:%S")
+    """date_str = date_py.strftime("%Y-%m-%d")
+    hour_str = date_py"""
 
     # Adding new column to the csv file (optional)
     df.insert(5, 'handled', handled_values)
     df.insert(6, 'lost_ivr', lost_ivr_values)
-    """df.insert(9, 'dates', dates_values)
-    df.insert(10, 'hours', hours_values)"""
+    df.insert(9, 'dates', dates_values)
+    df.insert(10, 'hours', hours_values)
     df['hour'] = pandas.to_datetime(df['hours'], format='%H:%M:%S').dt.hour
 
 
@@ -95,6 +99,7 @@ def stream_csv_data(file_path):
     dmc = filtered_rows['ConvDuration'].mean()
     dma = filtered_rows['WaitDuration'].mean()
     dpt = filtered_rows['WrapupDuration'].mean()
+    dmt = dmc + dpt
     dealed = filtered_rows['CallType'].sum()
     max_date = filtered_rows['dates'].max()
     min_date = filtered_rows['dates'].min()
@@ -103,15 +108,22 @@ def stream_csv_data(file_path):
     """for date in df['dates']:
         print(date)"""
 
-    """lFlow = LittleFlow()
+    lFlow = LittleFlow()
     lFlow.start_date = min_date
     lFlow.end_date = max_date
-    lFlow.dealed_calls = dealed"""
+    lFlow.dealed_calls = dealed
+    lFlow.dma = dma
+    lFlow.dmc = dmc
+    lFlow.dpt = dpt
+    lFlow.dmt = dmt
+    lFlow.activity = Activity.objects.filter(code_file__code=filtered_rows['LastCampaign'].iloc[0])[0]
+    lFlow.save()
+
     # lFlow.activity
 
     print("Max date: {} \nMin date: {} \nMax hour: {} \nMin hour: {}".format(max_date, min_date, max_hour, min_hour))
-    filtered_rows.to_excel('data.xlsx',index=False)
-    return ([dmc, dma, dpt, dealed])
+    #filtered_rows.to_excel('data.xlsx',index=False)
+    return ([dmt, dmc, dma, dpt, dealed])
     """with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
@@ -122,7 +134,7 @@ def process_file(request):
     uploaded_file = UploadedFile.objects.last()
     if uploaded_file:
         file_path = uploaded_file.file.path
-        dmc, dma, dpt, dealed = stream_csv_data(file_path)
+        dmt, dmc, dma, dpt, dealed = stream_csv_data(file_path)
         """with open(file_path, 'r') as file:
             reader = csv.reader(file)
             header = next(reader)
@@ -131,7 +143,7 @@ def process_file(request):
             # for row in reader:
             #     yield ','.join(row) + '\n'
         
-        response = render(request, 'success.html', {'dmc': round(dmc), 'dma': round(dma), 'dpt': round(dpt), 'dealed': dealed})
+        response = render(request, 'success.html', {'dmt': round(dmt),'dmc': round(dmc), 'dma': round(dma), 'dpt': round(dpt), 'dealed': dealed})
         # response = StreamingHttpResponse(stream_csv_data(file_path), content_type='text/csv')
         # response['Content-Disposition'] = 'attachment; filename="data.csv"'
         return response

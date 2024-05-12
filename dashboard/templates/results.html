@@ -6,23 +6,22 @@
     <title>Csv results</title>
 </head>
 <body>
-    <h1>Result of reading {{ name }}</h1>
-    {% if data%}
+    <h1>Result of query</h1>
+    {% if flow%}
         <table>
             <th>Dealed</th>
             <th>DMA</th>
             <th>DMC</th>
             <th>DMT</th>
             <th>DPT</th>
-            {% for flow in data  %}
-                <tr>
-                    <td>{{flow.dealed_calls}}</td>
-                    <td>{{flow.dma}}</td>
-                    <td>{{flow.dmc}}</td>
-                    <td>{{flow.dmt}}</td>
-                    <td>{{flow.dpt}}</td>
-                </tr>
-            {% endfor %}
+            <tr>
+                <td>{{flow.dealed_calls}}</td>
+                <td>{{flow.dma}}</td>
+                <td>{{flow.dmc}}</td>
+                <td>{{flow.dpt}}</td>
+                <td>{{flow.dmt}}</td>
+            </tr>
+
         </table>
     {%else%}
         <p>No flow record found</p>
