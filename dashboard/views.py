@@ -25,7 +25,9 @@ def index(request):
 def process_data(form):
     start_date = form.cleaned_data["start_date"]
     end_date = form.cleaned_data["end_date"]
-    data = LittleFlow.objects.filter(start_date=start_date, end_date=end_date)[0]
+    data = LittleFlow.objects.filter(start_date=start_date, end_date=end_date)
+    if data:
+        return data[0]
     return data
 
 
