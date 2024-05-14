@@ -98,6 +98,15 @@ def stream_csv_data(file_path):
                        ]
 
     # Doing operations (sum, average...)
+    typologies_rows = filtered_rows.dropna(subset=["StatusText"])['StatusText']
+    typologies_dict = {}
+    for typologie in typologies_rows:
+        if typologies_dict.get(typologie):
+            typologies_dict[typologie] += 1
+        else:
+            typologies_dict[typologie] = 1
+    
+    sorted_typologies_dict = dict(sorted(typologies_dict.items(), key= lambda x:x[1], reverse=True))
     dmc = filtered_rows['ConvDuration'].mean()
     dma = filtered_rows['WaitDuration'].mean()
     dpt = filtered_rows['WrapupDuration'].mean()
@@ -119,13 +128,15 @@ def stream_csv_data(file_path):
     lFlow.dpt = dpt
     lFlow.dmt = dmt
     lFlow.activity = Activity.objects.filter(code_file__code=filtered_rows['LastCampaign'].iloc[0])[0]
-    lFlow.save()
+    lf = LittleFlow.objects.filter(start_date=min_date, end_date=max_date, activity=lFlow.activity).first()
+    if not lf:
+        lFlow.save()
 
     # lFlow.activity
 
     print("Max date: {} \nMin date: {} \nMax hour: {} \nMin hour: {}".format(max_date, min_date, max_hour, min_hour))
     #filtered_rows.to_excel('data.xlsx',index=False)
-    return ([dmt, dmc, dma, dpt, dealed])
+    return ([dmt, dmc, dma, dpt, dealed, sorted_typologies_dict.items()])
     """with open(file_path, 'r', newline='', encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
@@ -136,7 +147,7 @@ def process_file(request):
     uploaded_file = UploadedFile.objects.last()
     if uploaded_file:
         file_path = uploaded_file.file.path
-        dmt, dmc, dma, dpt, dealed = stream_csv_data(file_path)
+        dmt, dmc, dma, dpt, dealed, typologies = stream_csv_data(file_path)
         """with open(file_path, 'r') as file:
             reader = csv.reader(file)
             header = next(reader)
@@ -145,7 +156,13 @@ def process_file(request):
             # for row in reader:
             #     yield ','.join(row) + '\n'
         
-        response = render(request, 'success.html', {'dmt': round(dmt),'dmc': round(dmc), 'dma': round(dma), 'dpt': round(dpt), 'dealed': dealed})
+        response = render(request, 'success.html', {'dmt': round(dmt),
+                                                    'dmc': round(dmc),
+                                                    'dma': round(dma),
+                                                    'dpt': round(dpt),
+                                                    'dealed': dealed,
+                                                    'typologies': typologies
+                                                    })
         # response = StreamingHttpResponse(stream_csv_data(file_path), content_type='text/csv')
         # response['Content-Disposition'] = 'attachment; filename="data.csv"'
         return response

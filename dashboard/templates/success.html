@@ -15,5 +15,16 @@
         <li>DPT {{dpt}}</li>
         <li>DMT {{dmt}}</li>
     </ul>
+
+    <table>
+        <th>Typologies</th>
+        <th>Total</th>
+        {% for typologie, total in typologies %}
+            <tr>
+                <td>{{ typologie }}</td>
+                <td>{{ total }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>

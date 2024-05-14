@@ -23,6 +23,17 @@
             </tr>
 
         </table>
+
+        <table>
+            <th>typologie</th>
+            <th>Total</th>
+            {% for typologie, total in typologies %}
+                <tr>
+                    <td>{{ typologie }}</td>
+                    <td>{{ total }}</td>
+                </tr>
+            {% endfor %}
+        </table>
     {%else%}
         <p>No flow record found</p>
         <a href="{%url 'upload' %}">Upload inbound data</a>
