@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/air-datepicker/2.2.3/css/datepicker.css">
+        <link rel="stylesheet" href="{% static 'css/base.css' %}">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/air-datepicker/2.2.3/js/datepicker.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/air-datepicker/2.2.3/js/i18n/datepicker.en.min.js"></script>
+        <script src="{% static 'js/base.js' %}"></script>
+        <title>Dashboard</title>
+    </head>
+    <body>
+        <nav>
+            <div id="app_title">
+                <span>Dashflow </span>
+                <img src="{% static 'img/analysis.png'%}" alt="icon">
+            </div>
+            <ul>
+                <img src="{% static 'img/account.png' %} " alt="Profile">
+                <li>Se déconnecter</li>
+                <li>Paramètres</li>
+            </ul>
+        </nav>
+        <div id="body">
+            <div id="side_menu">
+                <!-- <span>Modifier</span> -->
+            </div>
+            <hr>
+            <div id="content">
+                <div id="content_items">
+                    {% block content %}
+                        
+                    {% endblock content %}
+                </div>
+            </div>  
+            <script>
+                var mindate = new Date("2021-04-20");
+                /*mindate.setDate(mindate.getDate() - 8);*/
+                var maxdate = new Date();
+                maxdate.setDate(maxdate.getDate() - 1);
+                var cleared_dates = [];
+                $('#minMaxExample').datepicker({
+                    // language: 'en',
+                    range : true,
+                    minDate : mindate,
+                    maxDate : maxdate,
+                    multipleDates: true,
+                    multipleDatesSeparator: " - ",
+                    onSelect: function(formattedDate, dates, inst){
+                        // console.log(date.toLocaleDateString());
+                        cleared_dates = [];
+                        console.log(dates.length);
+                        if (dates.length > 0){
+                            dates.forEach(function(date){
+                                cleared_dates.push(date.toLocaleDateString());
+                            })
+                        }
+                        // else if (dates.length == 1){
+                        //     cleared_dates = dates[0].toLocaleDateString();
+                        // }
+                        console.log(cleared_dates);
+                    }
+                })
+            </script>
+        </div>
+        <div class="loader"></div>
+    </body>
+</html>

@@ -1,163 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <style>
-        *{
-            /* padding: 0;
-            margin: 0; */
-        }
-        body{
-            background-color: gray;
-        }
-        header{
-            display: flex;
-            justify-content: space-between;
-            background-color: white;
-        }
 
-        header ul{
-            display: flex;
-            justify-content: space-around;
-            background-color: gray;
-        }
+{% extends 'base.html' %}
+{#  #}
+{% load static %}
 
-        header ul li{
-            background-color: beige;
-            margin-left: 25px;
-        }
-
-        ul{
-            list-style: none;
-            padding: 0;
-        }
-
-        #menu{
-            background-color: beige;
-            width: fit-content;
-            height: 100%;
-            /* display: inline-block; */
-        }
-
-        body{
-            width: 100%;
-            height: 100vh;
-        }
-
-        .body{
-            width: 100%;
-            background-color: white;
-            height: 100%;
-            display: flex;
-        }
-        #content{
-            background-color: rgba(152, 151, 153, 0.219);
-            flex: 2;
-            text-align: center;
-            /* display: inline-block; */
-        }
-
-        .autocomplete{
-            position: relative;
-        }
-
-        #autocomplete-list{
-            position: absolute;
-            background-color: #bfdddb;
-            border: 1px solid rgb(156, 70, 20);
-            max-height: 150px;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-
-        .autocomplete-option{
-            padding: 10px;
-            cursor: pointer;
-        }
-
-        .autocomplete-option:hover{
-            background-color: #246863;
-        }
-        
-        .tag{
-            display: inline-block;
-            background-color: blue;
-            color: brown;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin-right: 5px;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h2>Dashflow</h2>
-        <nav>
-            <ul>
-                <li>Se déconnecter</li>
-                <li>Paramètres</li>
-            </ul>
-        </nav>
-    </header>
-    <div class="body">
-        <nav id="menu">
-            <ul>
-                <li>Activités</li>
-                <li>Agents</li>
-            </ul>
-        </nav>
-        <div id="content">
-            <!-- <div class="autocomplete">
-                <input type="text" name="" id="autocomplete-input">
-                <div id="autocomplete-list" class="autocomplete-list"></div>
-            </div> -->
-            <form action="">
-                <input type="text" placeholder="Test">
+{% block content %}
+    <div id="filter">
+        <div class="box">
+            <h3>Filtre</h3>
+            <form method="post" id="periode_form" class="form-group">
+                {% csrf_token %}
+                {# <input type="text" class="datepicker-here form-control" id="minMaxExample" data-date-format="dd/mm/yyyy" data-language='en' placeholder="Sélectionner la période"> #}
+                {{form.date}}
+                {{form.activity}}                
+                <button class="btn btn-primary">Générer</button>
             </form>
-            <p>Récapitulatif - Dernière extraction</p>
+        </div>
+        <hr>
+    </div>
+    <h2>Récapitulatif de la journée du ....</h2>
+    <h3>Activité: TMONEY </h3>
+    <div id="stats">
+        <div id="dealed">
+            <span>Appels traités</span>
+            {# <img src="{% static 'img/call_answered.png'%}" alt=""> #}
+            <img src="{% static 'img/call_answered.png'%}" alt="">
+            
+            <span>3518</span>
+        </div>
+        <div id="wait">
+            <span>DMA</span>
+            {# <img src="{% static 'img/wait.png'%}" alt="Waiting time"> #}
+            <img src="{% static 'img/wait.png'%}" alt="Waiting time">
+            
+            <span id="nb">8</span>
+        </div>
+        <div id="processed">
+            <span>DMT</span>
+            {# <img src="{% static 'img/time_processed.png'%}" alt="Time processed"> #}
+            <img src="{% static 'img/time_processed.png'%}" alt="Time processed">
+            
+            <span id="nb">110</span>
+        </div>
+        <div id="post_process">
+            <span>DPT</span>
+            {# <img src="{% static 'img/post_process.png'%}" alt="Post"> #}
+            <img src="{% static 'img/post_process.png'%}" alt="Post">
+            
+            <span id="nb">10</span>
+        </div>
+        <div id="com">
+            <span>DMC</span>
+            {# <img src="{% static 'img/call_time.png'%}" alt="Call time"> #}
+            <img src="{% static 'img/call_time.png'%}" alt="Call time">
+            
+            <span id="nb">120</span>
         </div>
     </div>
-
-    <script>
-        const input = document.getElementById('autocomplete-input');
-        const autocompleteList = document.getElementById('autocomplete-list');
-
-        const options = ['Sport', 'Special', 'Road', 'Roaming'];
-
-        input.addEventListener('input', function(){
-            const inputValue = this.value.toLowerCase();
-            autocompleteList.innerHTML = '';
-
-            const filteredOptions = options.filter(option => option.toLowerCase().startsWith(inputValue));
-            filteredOptions.forEach(option => {
-                const optionElement = document.createElement('div');
-                optionElement.classList.add('autocomplete-option');
-                optionElement.textContent = option;
-                optionElement.addEventListener('click', function(){
-                    addTag(option);
-                    input.value = ''
-                    autocompleteList.innerHTML = '';
-                });
-                autocompleteList.appendChild(optionElement);
-            });
-        });
-
-        const tagsContainer = document.createElement('div');
-        tagsContainer.id = 'tag-container';
-        input.parentNode.insertBefore(tagsContainer, input.nextSibling);
-
-        function addTag(text){
-            const tag = document.createElement('span');
-            tag.classList.add('tag');
-            tag.addEventListener('click', function(){
-                tagsContainer.removeChild(tag);
-            });
-            tagsContainer.appendChild(tag);
-        }
-    </script>
-</body>
-</html>
+    <hr>
+    <button id="indice" class="btn btn-primary">Ajouter un indice</button>
+    <button id="export" class="btn btn-success">Exporter</button>
+    <div class="loader"></div>
+{% endblock content %}

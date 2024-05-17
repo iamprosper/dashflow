@@ -13,14 +13,15 @@ from .forms import FileUploadForm, FilterFlow
 # Create your views here.
 def index(request):
     if request.method == 'POST':
-        form = FilterFlow(request.POST)
+        print("---------Posted--------")
+        """form = FilterFlow(request.POST)
         if form.is_valid():
             data = process_data(form)
             print("Data: {}".format(data))
-        return render(request, 'results.html', {'flow': data})
+        return render(request, 'results.html', {'flow': data})"""
     else:
         form = FilterFlow()
-    return render(request, 'index.html', {'form': form})
+    return render(request, 'dashboard/index.html', {'form': form})
 
 def process_data(form):
     start_date = form.cleaned_data["start_date"]
