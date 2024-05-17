@@ -1,7 +1,8 @@
 import csv
 import datetime
+import json
 import chardet
-from django.http import HttpResponse, StreamingHttpResponse
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 from django.templatetags import static
 import pandas
@@ -11,9 +12,24 @@ from .models import Flow, LittleFlow, UploadedFile, Activity
 from .forms import FileUploadForm, FilterFlow
 
 # Create your views here.
+def is_ajax(request):
+    return request.META.get('HTTP_X_REQUESTED_WITH') == "XMLHttpRequest"
 def index(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and is_ajax(request=request):
         print("---------Posted--------")
+        data_str = request.body.decode('utf-8')
+        data = json.loads(data_str)
+        check_flow = LittleFlow.objects.filter(start_date = datetime.datetime.strptime(data.get("start_date"), "%d/%m/%Y").date(),
+                                               end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y").date(),
+                                               activity__code = data.get("code"),
+                                               activity__name = data.get("activity"))[0]
+        if (check_flow):
+           return JsonResponse({"message": check_flow})
+            # return render(request, 'results.html', {'flow': check_flow})
+        
+        response_data = {'message': 'Données Inexistantes'}
+        
+        return JsonResponse(response_data)
         """form = FilterFlow(request.POST)
         if form.is_valid():
             data = process_data(form)
