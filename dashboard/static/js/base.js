@@ -1,6 +1,12 @@
 $(document).ready(function(){
-    var min_selected_date = ""
-    var max_selected_date = ""
+    let dealed;
+    let dma;
+    let dmt;
+    let dpt;
+    let dmc;
+    let jsonResponse;
+    var min_selected_date = "";
+    var max_selected_date = "";
     var mindate = new Date("2021-04-20");
     /*mindate.setDate(mindate.getDate() - 8);*/
     var maxdate = new Date();
@@ -49,7 +55,6 @@ $(document).ready(function(){
         console.log(`Code - ${code}`);
         min_selected_date = cleared_dates[0];
 
-        
         if (code && cleared_dates.length > 0){
             if(cleared_dates.length == 1){
                 max_selected_date = min_selected_date;
@@ -77,6 +82,9 @@ $(document).ready(function(){
                     },
                     success: function(response){
                         console.log(response);
+                        console.log(JSON.parse(response["message"]));
+                        jsonResponse = JSON.parse(response["message"]);
+                        fillKPIs(jsonResponse);
                     },
                     error: function(xhr, errmsg, err){
                         console.log(`${xhr.status}: ${xhr.responseText}`);
@@ -115,5 +123,13 @@ $(document).ready(function(){
             }
         }
         return cookieValue;
+    }
+
+    function fillKPIs(response){
+        $("#dealed .nb").text(response["dealed_calls"]);
+        $("#wait .nb").text(response["dma"]);
+        $("#processed .nb").text(response["dmt"]);
+        $("#post_process .nb").text(response["dpt"]);
+        $("#com .nb").text(response["dmc"]);
     }
 });

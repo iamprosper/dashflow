@@ -5,7 +5,9 @@ import chardet
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 from django.templatetags import static
+import jsonpickle
 import pandas
+
 
 from .models import Flow, LittleFlow, UploadedFile, Activity
 
@@ -19,12 +21,22 @@ def index(request):
         print("---------Posted--------")
         data_str = request.body.decode('utf-8')
         data = json.loads(data_str)
-        check_flow = LittleFlow.objects.filter(start_date = datetime.datetime.strptime(data.get("start_date"), "%d/%m/%Y").date(),
-                                               end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y").date(),
+        check_flow = LittleFlow.objects.filter(start_date = datetime.datetime.strptime(data.get("start_date"), "%d/%m/%Y"),
+                                               end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y"),
                                                activity__code = data.get("code"),
                                                activity__name = data.get("activity"))[0]
         if (check_flow):
-           return JsonResponse({"message": check_flow})
+           print(check_flow)
+           json_str = jsonpickle.encode(check_flow)
+        #    json_strr = json.dumps(check_flow)
+           cf_dict = check_flow.__dict__
+           print(cf_dict)
+           cf_dict.pop('_state')
+           cf_json = json.dumps(cf_dict, default=str, indent=4)
+           print(type(cf_dict))
+           print(cf_json)
+           print(type(cf_json))
+           return JsonResponse({"message":cf_json})
             # return render(request, 'results.html', {'flow': check_flow})
         
         response_data = {'message': 'Données Inexistantes'}
