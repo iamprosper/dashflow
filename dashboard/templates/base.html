@@ -18,8 +18,10 @@
     <body>
         <nav>
             <div id="app_title">
-                <span>Dashflow </span>
-                <img src="{% static 'img/analysis.png'%}" alt="icon">
+                <a href="#">
+                    <span>Dashflow</span>
+                    <img src="{% static 'img/analysis.png'%}" alt="icon">
+                </a>
             </div>
             <ul>
                 <img src="{% static 'img/account.png' %} " alt="Profile">
@@ -29,6 +31,16 @@
         </nav>
         <div id="body">
             <div id="side_menu">
+                <ul id="menu">
+                    <li id="activities">
+                        <a href=""><img src="{% static 'img/activity.png'%}" alt=""><span>Activités</span></a>
+                    </li>
+                    <hr>
+                    <li id="agents">
+                        <a href=""><img src="{% static 'img/agent.png'%}" alt=""><span>Agents</span></a>
+                    </li>
+                    <hr>
+                </ul>
                 <!-- <span>Modifier</span> -->
             </div>
             <hr>

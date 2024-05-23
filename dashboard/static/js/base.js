@@ -4,6 +4,7 @@ $(document).ready(function(){
     let dmt;
     let dpt;
     let dmc;
+    // inbound_ext_values = {};
     let jsonResponse;
     var min_selected_date = "";
     var max_selected_date = "";
@@ -84,7 +85,9 @@ $(document).ready(function(){
                         console.log(response);
                         console.log(JSON.parse(response["message"]));
                         jsonResponse = JSON.parse(response["message"]);
-                        fillKPIs(jsonResponse);
+                        activity = response["activity"];
+                        // console.log(activity);
+                        fillKPIs(jsonResponse, activity);
                     },
                     error: function(xhr, errmsg, err){
                         console.log(`${xhr.status}: ${xhr.responseText}`);
@@ -125,11 +128,14 @@ $(document).ready(function(){
         return cookieValue;
     }
 
-    function fillKPIs(response){
+    function fillKPIs(response, activity){
         $("#dealed .nb").text(response["dealed_calls"]);
         $("#wait .nb").text(response["dma"]);
         $("#processed .nb").text(response["dmt"]);
         $("#post_process .nb").text(response["dpt"]);
         $("#com .nb").text(response["dmc"]);
+        // $("#date").text(min_selected_date);
+        $("#activity-name").text(activity);
+        // console.log(`Activity ${activity}`);
     }
 });

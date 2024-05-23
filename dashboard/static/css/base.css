@@ -96,6 +96,11 @@ nav {
     margin-bottom: 10px;
 }
 
+#app_title a{
+    text-decoration: none;
+    color: white;
+}
+
 nav ul {
     list-style: none;
     display: flex;
@@ -122,9 +127,17 @@ nav ul li{
 }
 
 #side_menu{
-    background-color: rgb(58, 57, 57);
+    background-color: #FBFBFB;
     height: 100%;
     width: 10%;
+}
+
+#side_menu a{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: initial;
 }
 
 .box{
@@ -155,10 +168,11 @@ nav ul li{
     width: 15%;
     align-items: center;
     /* background-color: gray; */
-    padding: 15px;
+    padding: 10px;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,
     rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,
     rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+    box-sizing: content-box;
 }
 
 #stats div img{

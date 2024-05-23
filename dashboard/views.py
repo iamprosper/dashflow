@@ -27,6 +27,7 @@ def index(request):
                                                activity__name = data.get("activity"))[0]
         if (check_flow):
            print(check_flow)
+           activity = data.get("activity")
            json_str = jsonpickle.encode(check_flow)
         #    json_strr = json.dumps(check_flow)
            cf_dict = check_flow.__dict__
@@ -36,7 +37,7 @@ def index(request):
            print(type(cf_dict))
            print(cf_json)
            print(type(cf_json))
-           return JsonResponse({"message":cf_json})
+           return JsonResponse({"message":cf_json, "activity": activity})
             # return render(request, 'results.html', {'flow': check_flow})
         
         response_data = {'message': 'Données Inexistantes'}
@@ -158,6 +159,7 @@ def stream_csv_data(file_path):
     lFlow.dpt = dpt
     lFlow.dmt = dmt
     lFlow.activity = Activity.objects.filter(code_file__code=filtered_rows['LastCampaign'].iloc[0])[0]
+    print(lFlow.activity)
     lf = LittleFlow.objects.filter(start_date=min_date, end_date=max_date, activity=lFlow.activity).first()
     if not lf:
         lFlow.save()
