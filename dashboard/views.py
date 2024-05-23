@@ -62,6 +62,10 @@ def process_data(form):
     return data
 
 
+def fill_db(request):
+    stream_csv_data("media/uploads/05-2024.csv")
+    return HttpResponse("Success")
+
 def upload_file(request):
     # For uploading the CSV file
     if request.method == 'POST':
@@ -127,7 +131,31 @@ def stream_csv_data(file_path):
                        & (df['LastCampaign'] >= 1845)
                        & (df['LastCampaign'] <= 1847)
                        ]
+    
+    days_filter = filtered_rows['dates'].apply(lambda x: x[8:])
+    filtered_rows['days'] = days_filter.apply(lambda x: int(x))
 
+    min_day = filtered_rows['days'].min()
+    max_day = filtered_rows['days'].max()
+
+    for day in range(min_day, max_day +1):
+        day_filter = filtered_rows[filtered_rows['days'] == day]
+        dma = round(day_filter["WaitDuration"].mean())
+        dmc = round(day_filter["ConvDuration"].mean())
+        dpt = round(day_filter["WrapupDuration"].mean())
+        dmt = dmc + dpt
+        dealed = day_filter["CallType"].sum()
+
+        print("""Donées du {}
+              Traités: {}
+              DMA: {}
+              DMC: {}
+              DPT: {}
+              DMT: {}
+              """.format(day, dealed, dma, dmc, dpt, dmt))
+        return
+    """for day in range(min_day, max_day + 1):
+        filte"""
     # Doing operations (sum, average...)
     typologies_rows = filtered_rows.dropna(subset=["StatusText"])['StatusText']
     typologies_dict = {}
@@ -138,9 +166,9 @@ def stream_csv_data(file_path):
             typologies_dict[typologie] = 1
     
     sorted_typologies_dict = dict(sorted(typologies_dict.items(), key= lambda x:x[1], reverse=True))
-    dmc = filtered_rows['ConvDuration'].mean()
-    dma = filtered_rows['WaitDuration'].mean()
-    dpt = filtered_rows['WrapupDuration'].mean()
+    dmc = round(filtered_rows['ConvDuration'].mean())
+    dma = round(filtered_rows['WaitDuration'].mean())
+    dpt = round(filtered_rows['WrapupDuration'].mean())
     dmt = dmc + dpt
     dealed = filtered_rows['CallType'].sum()
     max_date = filtered_rows['dates'].max()
