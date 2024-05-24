@@ -6,7 +6,7 @@ from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 from django.templatetags import static
 import jsonpickle
-import pandas
+import pandas as pd
 
 
 from .models import Flow, LittleFlow, UploadedFile, Activity
@@ -92,7 +92,7 @@ def stream_csv_data(file_path):
     print("Encoding {}".format(encoding))
     
     # Reading the file with pandas library
-    df = pandas.read_csv(file_path, encoding=encoding)
+    df = pd.read_csv(file_path, encoding=encoding)
 
     print("Path: {}".format(file_path))
 
@@ -121,7 +121,7 @@ def stream_csv_data(file_path):
     df.insert(6, 'lost_ivr', lost_ivr_values)
     df.insert(9, 'dates', dates_values)
     df.insert(10, 'hours', hours_values)
-    df['hour'] = pandas.to_datetime(df['hours'], format='%H:%M:%S').dt.hour
+    df['hour'] = pd.to_datetime(df['hours'], format='%H:%M:%S').dt.hour
 
 
     # Filtering rows to obtain precise call values
@@ -290,3 +290,66 @@ def process_file(request):
     except Exception as e:
         print("An error occured : {}".format(e))
         return render(request, 'upload_form.html')"""
+
+
+def load_inbound(file_path):
+    def status_text_converter(value):
+        if pd.isna(value):
+            return ""
+        else:
+            return str(value)
+    
+    column_types = {
+        'CallType': int,
+        'LastCampaign': int,
+        'LastAgent': int,
+        'WaitDuration': int,
+        'ConvDuration': int,
+        'WrapupDuration': int,
+        'Overflow': int
+    }
+    global df
+
+    df = pd.read_csv(
+        file_path,
+        usecols=[
+            'CallType',
+            'CallLocalTime',
+            'LastCampaign',
+            'LastAgent',
+            'WaitDuration',
+            'ConvDuration',
+            'WrapupDuration',
+            'OverflowDuration',
+            'StatusText'
+        ],
+        dtype=column_types,
+        parse_dates= ['CallLocalTime'],
+        encoding='utf-32be',
+        converters=status_text_converter
+    )
+
+    df['handled'] = df['ConvDuration'].apply(lambda cell: 1 if cell >= 10 else 0)
+    df['lost_ivr'] = df.apply(lambda row: 1 if row['ConvDuration'] == 0
+                              and row['WaitDuration'] == 0
+                              and row['Overflow'] == 0 else 0, axis=1)
+    
+
+
+    for day in range(df['CallLocalTime'].min().day, df['CallLocalTime'].max().day):
+        tmoney_rows = df[
+            (df['CallLocalTime'].apply(lambda x: x.day == day))
+            & (df['LastCampaign'].isin([1845, 1846, 1847]))
+            & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
+        ]
+
+    filtered_rows_camp = df[(df['CallLocalTime'].apply(lambda x: x.day == 6))
+                       & (df['LastCampaign'] >= 1845)
+                       & (df['LastCampaign'] <= 1847)
+                       & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
+                       & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))]
+    
+
+
+
+    
