@@ -6,6 +6,7 @@ from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 from django.templatetags import static
 import jsonpickle
+import numpy as np
 import pandas as pd
 
 
@@ -308,6 +309,12 @@ def load_inbound(file_path):
         'WrapupDuration': int,
         'Overflow': int
     }
+
+    """def int_converter(value):
+        if pd.isna(value):
+            return 0
+        else:
+            return int(value)"""
     global df
 
     df = pd.read_csv(
@@ -326,9 +333,18 @@ def load_inbound(file_path):
         dtype=column_types,
         parse_dates= ['CallLocalTime'],
         encoding='utf-32be',
-        converters={'StatusText': status_text_converter}
+        converters={
+            'StatusText': status_text_converter
+            }
     )
 
+    df = df.dropna(subset=["WaitDuration"])
+    df = df.dropna(subset=["ConvDuration"])
+
+    numeric_columns = df.select_dtypes(include=np.number).columns
+    non_numeric_columns = df.columns.difference(numeric_columns)
+
+    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
     # df['handled'] = df[
     #     (df['ConvDuration'].apply(lambda cell: 1 if cell >= 10 else 0))
     #     & (df['LastAgent'] > 0)
@@ -357,7 +373,7 @@ def load_inbound(file_path):
 
 def filter_days():
     days = {}
-    for day in range(df['CallLocalTime'].min().day, df['CallLocalTime'].max().day):
+    for day in range(df['CallLocalTime'].min().day, df['CallLocalTime'].max().day + 1):
         tmoney_rows = df[
             (df['CallLocalTime'].apply(lambda x: x.day == day))
             & (df['LastCampaign'].isin([1845, 1846, 1847]))
@@ -452,7 +468,7 @@ def filter_days():
         }
 
         # for day in range(fran_rows.min().day(), fran_rows.max().day()):
-        """fran_rows = df[
+        fran_rows = df[
             (df['CallLocalTime'].apply(lambda x: x.day == day))
             & (df['LastCampaign'].isin([1111, 1112, 1113]))
             & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
@@ -461,6 +477,7 @@ def filter_days():
         weekday = fran_rows[
             fran_rows['CallLocalTime'].apply(lambda x: x.day == day)
             ]['CallLocalTime'].iloc[0].weekday()
+        
         days_of_week = ['Monday',
                         'Tuesday',
                         'Wednesday',
@@ -469,14 +486,16 @@ def filter_days():
                         'Saturday',
                         'Sunday'
                         ]
+        # if (days_of_week[weekday] != 'Sunday'):
+        #     print("Fran day number - {}, day name {}".format(weekday, days_of_week[weekday]))
         if (days_of_week[weekday] != 'Sunday'):
             fran_rows_offered = fran_rows['CallType'].sum()
             fran_rows_lost_ivr= fran_rows['lost_ivr'].sum()
             fran_rows_handled = fran_rows[fran_rows['handled'] == 1]
-            fran_rows_dma = round(fran_rows_handled['WaitDuration'].mean())
-            fran_rows_dmc = round(fran_rows_handled['ConvDuration'].mean())
-            fran_rows_dpt = round(fran_rows_handled['WrapupDuration'].mean())
-            fran_rows_dmt = fran_rows_dmc + fran_rows_dpt
+            fran_rows_dma = fran_rows_handled['WaitDuration'].mean()
+            fran_rows_dmc = fran_rows_handled['ConvDuration'].mean()
+            fran_rows_dpt = fran_rows_handled['WrapupDuration'].mean()
+            # fran_rows_dmt = fran_rows_dmc + fran_rows_dpt
 
             fran_stats = {
                 'offered': fran_rows_offered,
@@ -484,33 +503,32 @@ def filter_days():
                 'dma': fran_rows_dma,
                 'dmc': fran_rows_dmc,
                 'dpt': fran_rows_dpt,
-                'dmt': fran_rows_dmt
+                'dma-type': type(fran_rows_dma),
+                'dmc-type': type(fran_rows_dmc),
+                'dpt-type': type(fran_rows_dpt)
+                # 'dmt': fran_rows_dmt
             }
     
             days[day] = {
-                tmoney_stats,
-                fixe_stats,
-                mobile_stats,
-                fran_stats,
-                pdv_stats,
+                'tmoney':tmoney_stats,
+                'fixe':fixe_stats,
+                'mobile':mobile_stats,
+                'fran':fran_stats,
+                'pdv':pdv_stats,
             }
         else:
             days[day] = {
-                tmoney_stats,
-                fixe_stats,
-                mobile_stats,
-                pdv_stats,
+                'tmoney':tmoney_stats,
+                'fixe':fixe_stats,
+                'mobile':mobile_stats,
+                'pdv':pdv_stats,
             }
-            """
-        days[day] = {
-            "tmoney": tmoney_stats,
-            'fixe': fixe_stats,
-            'mobile': mobile_stats,
-            'pdv': pdv_stats,
-        }
-
         print("Loaded")
-
+        print("Day {} - {}".format(df[df['CallLocalTime'].apply(lambda x: x.day == day)]
+                                   ['CallLocalTime'].iloc[0].day,
+                                   day
+                                   ))
         print(days[day])
+        print("==================")
 
     return days        
