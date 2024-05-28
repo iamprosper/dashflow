@@ -9,8 +9,9 @@
     <h2>Filling DB</h2>
     <ul id="data-list"></ul>
     <script>
-        alert('Welcome to the fill view')
-        const websocket = new WebSocket("ws://localhost:8000/dashboard/ws/fill")
+        // alert('Welcome to the fill view')
+        const socket_url = `ws://${window.location.host}/ws/fill`
+        const websocket = new WebSocket(socket_url)
         websocket.onopen = function(event){
             console.log("WebSocket connection established");
         };
