@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fill Db</title>
+</head>
+<body>
+    <h2>Filling DB</h2>
+    <ul id="data-list"></ul>
+    <script>
+        alert('Welcome to the fill view')
+        const websocket = new WebSocket("ws://localhost:8000/dashboard/ws/fill")
+        websocket.onopen = function(event){
+            console.log("WebSocket connection established");
+        };
+
+        websocket.onmessage = function(event){
+            const data = JSON.parse(event.data);
+            console.log("Received data:", data);
+
+            const dataList = document.getElementById("data-list");
+            const listItem = document.createElement("li");
+            listItem.textContent = JSON.stringify(data);
+            dataList.appendChild(listItem);
+        };
+
+        websocket.onclose = function(event){
+            console.log("WebSocket connection closed");
+        }
+    </script>
+    <h3>After</h3>
+</body>
+</html>

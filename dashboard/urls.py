@@ -1,5 +1,7 @@
 from django.urls import path
 
+from dashboard.consumers import DataConsumer
+
 from . import views
 
 
@@ -11,4 +13,5 @@ urlpatterns = [
     path("display/", views.lazy_display, name="lazy"),
     path("processd/", views.process_data, name="process_data"),
     path("fill/", views.fill_db, name='fill'),
+    path('ws/fill', DataConsumer.as_asgi()),
 ]

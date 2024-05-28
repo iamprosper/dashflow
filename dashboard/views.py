@@ -64,8 +64,8 @@ def process_data(form):
 
 
 def fill_db(request):
-    load_inbound("media/uploads/05-2024.csv")
-    return HttpResponse("Success")
+    #load_inbound("media/uploads/05-2024.csv")
+    return render(request, 'dashboard/fill.html')
 
 def upload_file(request):
     # For uploading the CSV file
@@ -492,22 +492,22 @@ def filter_days():
             fran_rows_offered = fran_rows['CallType'].sum()
             fran_rows_lost_ivr= fran_rows['lost_ivr'].sum()
             fran_rows_handled = fran_rows[fran_rows['handled'] == 1]
-            fran_rows_dma = fran_rows_handled['WaitDuration'].mean()
-            fran_rows_dmc = fran_rows_handled['ConvDuration'].mean()
-            fran_rows_dpt = fran_rows_handled['WrapupDuration'].mean()
+            if not fran_rows_handled.empty:
+                fran_rows_dma = round(fran_rows_handled['WaitDuration'].mean())
+                fran_rows_dmc = round(fran_rows_handled['ConvDuration'].mean())
+                fran_rows_dpt = round(fran_rows_handled['WrapupDuration'].mean())
             # fran_rows_dmt = fran_rows_dmc + fran_rows_dpt
 
-            fran_stats = {
-                'offered': fran_rows_offered,
-                'lost_ivr': fran_rows_lost_ivr,
-                'dma': fran_rows_dma,
-                'dmc': fran_rows_dmc,
-                'dpt': fran_rows_dpt,
-                'dma-type': type(fran_rows_dma),
-                'dmc-type': type(fran_rows_dmc),
-                'dpt-type': type(fran_rows_dpt)
-                # 'dmt': fran_rows_dmt
-            }
+                fran_stats = {
+                    'offered': fran_rows_offered,
+                    'lost_ivr': fran_rows_lost_ivr,
+                    'dma': fran_rows_dma,
+                    'dmc': fran_rows_dmc,
+                    'dpt': fran_rows_dpt,
+                    # 'dmt': fran_rows_dmt
+                }
+            else:
+                fran_stats = {}
     
             days[day] = {
                 'tmoney':tmoney_stats,
