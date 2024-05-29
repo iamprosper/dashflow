@@ -100,7 +100,7 @@ class DataConsumer(AsyncWebsocketConsumer):
         pass
     
     async def send_data(self, data):
-        print('Processing data')
+        # print('Processing data')
         await self.send(text_data=json.dumps(data, default=str, indent=4))
         print('Data sent')
         """for day in range(df['CallLocalTime'].min().day, df['CallLocalTime'].max().day):
@@ -284,4 +284,5 @@ class DataConsumer(AsyncWebsocketConsumer):
     async def print_sth(self, data):
     # sleep(2)
     # consumer = DataConsumer()
+        print("Data : {}".format(data))
         await self.send(text_data=json.dumps(data, default=str, indent=4))

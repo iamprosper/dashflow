@@ -1,6 +1,7 @@
 import csv
 import datetime
 import json
+from time import sleep
 import chardet
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
@@ -13,6 +14,8 @@ import pandas as pd
 from .models import Flow, LittleFlow, UploadedFile, Activity
 
 from .forms import FileUploadForm, FilterFlow
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 # Create your views here.
 def is_ajax(request):
@@ -292,6 +295,23 @@ def process_file(request):
         print("An error occured : {}".format(e))
         return render(request, 'upload_form.html')"""
 
+
+"""def real_process_data(request):
+    channel_layer = get_channel_layer()
+
+    for i in range(5):
+        sleep(2)
+        data = {
+            "message": f'Processed data {i+1}'
+        }
+        async_to_sync(channel_layer.group_send)(
+            'data_group',
+            {
+                'type': 'send_data',
+                'data': data
+            }
+        )
+    return HttpResponse('Data processing completed')"""
 
 def load_inbound(file_path):
     def status_text_converter(value):
