@@ -12,7 +12,9 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 from matplotlib import path
 from dashboard.consumers import DataConsumer
-from routing import websocket_urlpatterns
+# from routing import websocket_urlpatterns
+from .routing import websocket_urlpatterns
+from channels.auth import AuthMiddlewareStack
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dfa.settings')
 
@@ -22,5 +24,7 @@ application = ProtocolTypeRouter({
     # 'websocket': URLRouter([
     #     path('/ws/fill', DataConsumer.as_asgi())
     # ]),
-    'websocket': URLRouter(websocket_urlpatterns)
+    'websocket': AuthMiddlewareStack(
+        DataConsumer.as_asgi()
+    )
 })

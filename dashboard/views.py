@@ -315,7 +315,7 @@ def load_inbound(file_path):
             return 0
         else:
             return int(value)"""
-    global df
+    # global df
 
     df = pd.read_csv(
         file_path,
@@ -358,7 +358,7 @@ def load_inbound(file_path):
                               and row['Overflow'] == 0 else 0, axis=1)
     
 
-    days = filter_days()
+    # days = filter_days()
     """print(days)
     for day_details in days.items():
         print(day_details)"""
@@ -371,7 +371,8 @@ def load_inbound(file_path):
     
 
 
-def filter_days():
+# df = load_inbound("media/uploads/05-2024.csv")
+"""def filter_days():
     days = {}
     for day in range(df['CallLocalTime'].min().day, df['CallLocalTime'].max().day + 1):
         tmoney_rows = df[
@@ -532,3 +533,4 @@ def filter_days():
         print("==================")
 
     return days        
+"""

@@ -10,24 +10,33 @@
     <ul id="data-list"></ul>
     <script>
         // alert('Welcome to the fill view')
-        const socket_url = `ws://${window.location.host}/ws/fill`
-        const websocket = new WebSocket(socket_url)
+        const socket_url = `ws://${window.location.host}/dashboard/ws/fill`;
+        const websocket = new WebSocket(socket_url);
         websocket.onopen = function(event){
             console.log("WebSocket connection established");
         };
 
+        /*websocket.addEventListener('message', function (event){
+            console.log('Another event capturer');
+            const processedData = JSON.parse(event.data);
+            displayData(processedData);
+        })*/
+
         websocket.onmessage = function(event){
             const data = JSON.parse(event.data);
             console.log("Received data:", data);
-
+            displayData(data)
+        };
+        
+        websocket.onclose = function(event){
+            console.log("WebSocket connection closed");
+        }
+        
+        function displayData(data){
             const dataList = document.getElementById("data-list");
             const listItem = document.createElement("li");
             listItem.textContent = JSON.stringify(data);
             dataList.appendChild(listItem);
-        };
-
-        websocket.onclose = function(event){
-            console.log("WebSocket connection closed");
         }
     </script>
     <h3>After</h3>
