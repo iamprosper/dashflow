@@ -71,17 +71,52 @@ class LittleFlow(models.Model):
         on_delete = models.CASCADE,
         primary_key = True,
     )
-    offered_calls = models.IntegerField(verbose_name="Appels offerts")
-    dealed_calls = models.IntegerField(verbose_name="Appels traités")
+    offered_calls = models.IntegerField(verbose_name="Offered")
+    dealed_calls = models.IntegerField(verbose_name="Dealed")
     dma = models.IntegerField(verbose_name="DMA")
     dmc = models.IntegerField(verbose_name="DMC")
     dmt = models.IntegerField(verbose_name="DMT")
     dpt = models.IntegerField(verbose_name="DPT")
     ivr = models.IntegerField(verbose_name="IVR")
-    ignored = models.IntegerField(verbose_name="Ignorés")
-    gived_up = models.IntegerField(verbose_name='Abandonnés')
+    ignored = models.IntegerField(verbose_name="Ignored")
+    gived_up = models.IntegerField(verbose_name='Abandonned')
     qs = models.IntegerField(verbose_name='QS')
     sl = models.IntegerField(verbose_name='SL')
+
+    def __str__(self) -> str:
+        return '''
+    Offered calls {}
+    Dealed calls {}
+    DMA {}
+    DMC {}
+    DPT {}
+    DMC {}
+    Ignored {}
+    IVR {}
+    GIVED UP{}
+    QS {}
+    SL {}
+    Start date {}
+    End Date {}
+    Start day {}
+    End day {}
+'''.format(
+    self.offered_calls,
+    self.dealed_calls,
+    self.dma,
+    self.dmc,
+    self.dpt,
+    self.dmt,
+    self.ignored,
+    self.ivr,
+    self.gived_up,
+    self.qs,
+    self.sl,
+    self.start_date,
+    self.end_date,
+    self.start_date.day,
+    self.end_date.day,
+    )
 
 
 class UploadedFile(models.Model):

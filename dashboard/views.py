@@ -328,7 +328,8 @@ def load_inbound(file_path):
         'ConvDuration': int,
         'WrapupDuration': int,
         'Overflow': int,
-        'RerouteDuration': int
+        'RerouteDuration': int,
+        'Abandon': int
     }
 
     """def int_converter(value):
@@ -350,7 +351,8 @@ def load_inbound(file_path):
             'WrapupDuration',
             'Overflow',
             'StatusText',
-            'RerouteDuration'
+            'RerouteDuration',
+            'Abandon'
         ],
         dtype=column_types,
         parse_dates= ['CallLocalTime'],
@@ -392,6 +394,9 @@ def load_inbound(file_path):
         lambda row: 1 if row['WaitDuration'] <= 20
         and row['handled'] == 1 else 0, axis=1
     )
+    df['gived_up'] = df.apply(
+        lambda row: 1 if row['Abandon'] == 1 else 0, axis=1
+    )
 
     day_frame = df[
             (df['CallLocalTime'].apply(lambda x: x.day == 6))
@@ -408,16 +413,49 @@ def load_inbound(file_path):
     tmoney_ignored = tmoney_rows[tmoney_rows['ignored'] == 1]['ignored'].sum()
     tmoney_rerouted = tmoney_rows[tmoney_rows['rerouted'] == 1]['rerouted'].sum()
     tmoney_ivr = tmoney_rows['lost_ivr'].sum()
-    qs = round((tmoney_rows_handled['handled'].sum() + tmoney_rerouted)/(tmoney_offered - tmoney_ignored - tmoney_ivr) * 100)
-    sl = round((tmoney_rows_handled['ns_ok'].sum()/tmoney_rows_handled['handled'].sum()) * 100)
+    tmoney_gived_up = tmoney_rows['gived_up'].sum()
+    tmoney_dma = round(tmoney_rows_handled['WaitDuration'].mean())
+    tmoney_dmc = round(tmoney_rows_handled['ConvDuration'].mean())
+    tmoney_dpt = round(tmoney_rows_handled['WrapupDuration'].mean())
+    tmoney_dmt = tmoney_dmc + tmoney_dpt
+    qs = round((tmoney_rows_handled['handled'].sum() + tmoney_rerouted)/(tmoney_offered - tmoney_ignored - tmoney_ivr) * 100, 1)
+    sl = round((tmoney_rows_handled['ns_ok'].sum()/tmoney_rows_handled['handled'].sum()) * 100, 1)
     
+    print('Offered: {}'.format(tmoney_offered))
     print('Handled: {}'.format(tmoney_rows_handled['handled'].sum()))
     print('Ignored : {}'.format(tmoney_ignored))
     print('Lost Ivr: {}'.format(tmoney_rows['lost_ivr'].sum()))
     print('Rerouted: {}'.format(tmoney_rerouted))
+    print('DMA: {}'.format(tmoney_dma))
+    print('DMC: {}'.format(tmoney_dmc))
+    print('DPT: {}'.format(tmoney_dpt))
+    print('DMT: {}'.format(tmoney_dmt))
 
+    print('Total call 20s {}'.format(tmoney_rows['ns_ok'].sum()))
     print('SL: {}'.format(sl))
     print('QS: {}'.format(qs))
+
+    lf = LittleFlow.objects.all()
+    # print(lf)
+    for instance in lf:
+        print(instance)
+        tmoney_start_date = tmoney_rows_handled['CallLocalTime'].min().day
+        tmoney_end_date = tmoney_rows_handled['CallLocalTime'].max().day
+        print("Tmoney Start date: {} - Tmoney End date: {}".format(tmoney_start_date==instance.start_date, tmoney_end_date==instance.end_date))
+        if (instance.start_date.day == tmoney_rows_handled['CallLocalTime'].min().day
+            and instance.end_date.day == tmoney_rows_handled['CallLocalTime'].max().day
+            # and instance.dma == tmoney_dma
+            ):
+            print("------Founded-----")
+            instance.offered_calls = tmoney_offered
+            instance.ignored = tmoney_ignored
+            instance.ivr = tmoney_ivr
+            instance.gived_up = tmoney_gived_up
+            instance.qs = qs
+            instance.sl = sl
+            instance.save()
+        else:
+            print('=========Not founded=======')
     
 
     # days = filter_days()
