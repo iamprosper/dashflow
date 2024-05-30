@@ -67,7 +67,7 @@ def process_data(form):
 
 
 def fill_db(request):
-    #load_inbound("media/uploads/05-2024.csv")
+    load_inbound("media/uploads/05-2024.csv")
     return render(request, 'dashboard/fill.html')
 
 def upload_file(request):
@@ -327,7 +327,8 @@ def load_inbound(file_path):
         'WaitDuration': int,
         'ConvDuration': int,
         'WrapupDuration': int,
-        'Overflow': int
+        'Overflow': int,
+        'RerouteDuration': int
     }
 
     """def int_converter(value):
@@ -348,7 +349,8 @@ def load_inbound(file_path):
             'ConvDuration',
             'WrapupDuration',
             'Overflow',
-            'StatusText'
+            'StatusText',
+            'RerouteDuration'
         ],
         dtype=column_types,
         parse_dates= ['CallLocalTime'],
@@ -375,7 +377,47 @@ def load_inbound(file_path):
     )
     df['lost_ivr'] = df.apply(lambda row: 1 if row['ConvDuration'] == 0
                               and row['WaitDuration'] == 0
-                              and row['Overflow'] == 0 else 0, axis=1)
+                              and row['Overflow'] == 0 else 0, axis=1
+                              )
+    df['ignored'] = df.apply(
+        lambda row: 1 if row['ConvDuration'] > 0
+        and row['ConvDuration'] < 10 else 0, axis=1
+    )
+    df['rerouted'] = df.apply(
+        lambda row: 1 if row['RerouteDuration'] > 0
+        and row['LastAgent'] > 0 else 0,axis=1
+    )
+
+    df['ns_ok'] = df.apply(
+        lambda row: 1 if row['WaitDuration'] <= 20
+        and row['handled'] == 1 else 0, axis=1
+    )
+
+    day_frame = df[
+            (df['CallLocalTime'].apply(lambda x: x.day == 6))
+            & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
+            & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))
+        ]
+    tmoney_rows = day_frame[
+        day_frame['LastCampaign'].isin([1845, 1846, 1847])
+    ]
+
+    tmoney_offered = tmoney_rows['CallType'].sum()
+
+    tmoney_rows_handled = tmoney_rows[tmoney_rows['handled'] == 1]
+    tmoney_ignored = tmoney_rows[tmoney_rows['ignored'] == 1]['ignored'].sum()
+    tmoney_rerouted = tmoney_rows[tmoney_rows['rerouted'] == 1]['rerouted'].sum()
+    tmoney_ivr = tmoney_rows['lost_ivr'].sum()
+    qs = round((tmoney_rows_handled['handled'].sum() + tmoney_rerouted)/(tmoney_offered - tmoney_ignored - tmoney_ivr) * 100)
+    sl = round((tmoney_rows_handled['ns_ok'].sum()/tmoney_rows_handled['handled'].sum()) * 100)
+    
+    print('Handled: {}'.format(tmoney_rows_handled['handled'].sum()))
+    print('Ignored : {}'.format(tmoney_ignored))
+    print('Lost Ivr: {}'.format(tmoney_rows['lost_ivr'].sum()))
+    print('Rerouted: {}'.format(tmoney_rerouted))
+
+    print('SL: {}'.format(sl))
+    print('QS: {}'.format(qs))
     
 
     # days = filter_days()

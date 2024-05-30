@@ -71,11 +71,17 @@ class LittleFlow(models.Model):
         on_delete = models.CASCADE,
         primary_key = True,
     )
+    offered_calls = models.IntegerField(verbose_name="Appels offerts")
     dealed_calls = models.IntegerField(verbose_name="Appels traités")
     dma = models.IntegerField(verbose_name="DMA")
     dmc = models.IntegerField(verbose_name="DMC")
     dmt = models.IntegerField(verbose_name="DMT")
     dpt = models.IntegerField(verbose_name="DPT")
+    ivr = models.IntegerField(verbose_name="IVR")
+    ignored = models.IntegerField(verbose_name="Ignorés")
+    gived_up = models.IntegerField(verbose_name='Abandonnés')
+    qs = models.IntegerField(verbose_name='QS')
+    sl = models.IntegerField(verbose_name='SL')
 
 
 class UploadedFile(models.Model):
