@@ -418,16 +418,16 @@ def load_inbound(file_path):
     #                     ]
 
     for day in range(df['CallLocalTime'].min().day, df['CallLocalTime'].max().day + 1):
-    # day = 1
+    # day = 3
         day_frame = df[
                 (df['CallLocalTime'].apply(lambda x: x.day == day))
                 & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
-                & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))
+                & (df['CallLocalTime'].apply(lambda x: x.hour <= 20))
             ]
         day_time_stamps = day_frame['CallLocalTime'].iloc[0]
         day_date = day_time_stamps.date()
         day_name = day_time_stamps.strftime('%A')
-        
+
         print('**********************Day {}****************'.format(day))
 
         activities = list(Activity.objects.all())
@@ -447,43 +447,59 @@ def load_inbound(file_path):
                     activity_ignored = activity_rows[activity_rows['ignored'] == 1]['ignored'].sum()
                     activity_rerouted = activity_rows[activity_rows['rerouted'] == 1]['rerouted'].sum()
                     activity_ivr = activity_rows['lost_ivr'].sum()
-                    activity_gived_up = activity_rows['gived_up'].sum()
-                    activity_dma = round(activity_handled_rows['WaitDuration'].mean())
-                    activity_dmc = round(activity_handled_rows['ConvDuration'].mean())
-                    activity_dpt = round(activity_handled_rows['WrapupDuration'].mean())
+                    activity_gived_up = activity_rows[
+                        (activity_rows['WaitDuration'] > 0)
+                        &(activity_rows['Overflow'] == 0)
+                        &(activity_rows['LastAgent'] == 0)
+                    ]['CallType'].sum()
+                    activity_dma = round((activity_handled_rows['WaitDuration'].mean()))
+                    activity_dmc = round((activity_handled_rows['ConvDuration'].mean()))
+                    activity_dpt = round((activity_handled_rows['WrapupDuration'].mean()))
                     activity_dmt = activity_dmc + activity_dpt
-                    activity_qs = round(
-                        (activity_handled + activity_rerouted )/(activity_offered - activity_ignored - activity_ivr) * 100, 1
-                        )
-                    activity_sl = round((activity_handled_rows['ns_ok'].sum()/activity_handled) * 100, 1)
+                    # activity_qs = round(((activity_handled + activity_rerouted /(activity_offered - activity_ignored - activity_ivr)) * 100) , 1)
+                    activity_qs = round(((activity_handled + activity_rerouted)/(activity_offered - activity_ignored - activity_ivr)) * 100, 1)
+                    activity_sl = round(((activity_handled_rows['ns_ok'].sum()/activity_handled) * 100), 1)
 
                     # Filling KPIs in DB
                     # sleep(5)
-                    print('Starting save in DB')
-
-                    lf = LittleFlow()
-                    lf.activity = activity
-                    lf.process_date = day_date
-                    lf.offered_calls = activity_offered
-                    lf.dealed_calls = activity_handled
-                    lf.ivr = activity_ivr
-                    lf.ignored = activity_ignored
-                    lf.gived_up = activity_gived_up
-                    lf.dma = activity_dma
-                    lf.dmc = activity_dmc
-                    lf.dpt = activity_dpt
-                    lf.dmt = activity_dmt
-                    lf.sl = activity_sl
-                    lf.qs = activity_qs
-                    # sleep(5)
                     print('Before saving in DB')
+                    LittleFlow(
+                        activity=activity,
+                        process_date=day_date,
+                        offered_calls = activity_offered,
+                        dealed_calls = activity_handled,
+                        ivr = activity_ivr,
+                        ignored = activity_ignored,
+                        gived_up = activity_gived_up,
+                        dma = activity_dma,
+                        dmc = activity_dmc,
+                        dpt = activity_dpt,
+                        dmt = activity_dmt,
+                        sl = activity_sl,
+                        qs = activity_qs
+                    ).save()
+                    # lf.activity = activity
+                    # lf.process_date = day_date
+                    # lf.offered_calls = activity_offered
+                    # lf.dealed_calls = activity_handled
+                    # lf.ivr = activity_ivr
+                    # lf.ignored = activity_ignored
+                    # lf.gived_up = activity_gived_up
+                    # lf.dma = activity_dma
+                    # lf.dmc = activity_dmc
+                    # lf.dpt = activity_dpt
+                    # lf.dmt = activity_dmt
+                    # lf.sl = activity_sl
+                    # lf.qs = activity_qs
                     # sleep(5)
-                    lf.save()
-                    # print('After saving in DB')
+                    # print(lf)
+                    # sleep(5)
+                    # lf.save()
+                    print('Saved activity {} of {}  stats in DB'.format(activity.name, day))
                     # sleep(5)
                     # break
 
-                    print('===============Activity {} ==============='.format(activity.name))
+                    """print('===============Activity {} ==============='.format(activity.name))
                     print('Offered: {}'.format(activity_offered))
                     print('Handled: {}'.format(activity_handled_rows['handled'].sum()))
                     print('Ignored : {}'.format(activity_ignored))
@@ -497,7 +513,7 @@ def load_inbound(file_path):
 
                     print('Total call 20s {}'.format(activity_rows['ns_ok'].sum()))
                     print('SL: {}'.format(activity_sl))
-                    print('QS: {}'.format(activity_qs))
+                    print('QS: {}'.format(activity_qs))"""
                 else:
                     print('**************************************No working day for activity {}'.format(activity.name))
     """tmoney_offered = tmoney_rows['CallType'].sum()

@@ -80,9 +80,8 @@ class LittleFlow(models.Model):
     ivr = models.IntegerField(verbose_name="IVR")
     ignored = models.IntegerField(verbose_name="Ignored")
     gived_up = models.IntegerField(verbose_name='Abandonned')
-    qs = models.DecimalField(verbose_name='QS', max_digits=3, decimal_places=1)
-    sl = models.DecimalField(verbose_name='SL', max_digits=3, decimal_places=1)
-
+    qs = models.FloatField(verbose_name='QS')
+    sl = models.FloatField(verbose_name='SL')
     def __str__(self) -> str:
         return '''
     Offered calls {}
@@ -96,10 +95,7 @@ class LittleFlow(models.Model):
     GIVED UP{}
     QS {}
     SL {}
-    Start date {}
-    End Date {}
-    Start day {}
-    End day {}
+    Process date {}
 '''.format(
     self.offered_calls,
     self.dealed_calls,
@@ -112,10 +108,7 @@ class LittleFlow(models.Model):
     self.gived_up,
     self.qs,
     self.sl,
-    self.start_date,
-    self.end_date,
-    self.start_date.day,
-    self.end_date.day,
+    self.process_date
     )
 
 
