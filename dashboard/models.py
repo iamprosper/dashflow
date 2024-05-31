@@ -66,11 +66,12 @@ class Flow(models.Model):
 class LittleFlow(models.Model):
     process_date = models.DateField()
     # end_date = models.DateField()
-    activity = models.OneToOneField(
+    """activity = models.One(
         Activity,
         on_delete = models.CASCADE,
-        primary_key = True,
-    )
+        # primary_key = True,
+    )"""
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     offered_calls = models.IntegerField(verbose_name="Offered")
     dealed_calls = models.IntegerField(verbose_name="Dealed")
     dma = models.IntegerField(verbose_name="DMA")

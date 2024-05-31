@@ -25,8 +25,10 @@ def index(request):
         print("---------Posted--------")
         data_str = request.body.decode('utf-8')
         data = json.loads(data_str)
-        check_flow = LittleFlow.objects.filter(start_date = datetime.datetime.strptime(data.get("start_date"), "%d/%m/%Y"),
-                                               end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y"),
+        start_date = datetime.datetime.strptime(data.get("start_date"), "%d/%m/%Y")
+        end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y")
+        check_flow = LittleFlow.objects.filter(process_date__range=(start_date, end_date),
+                                            #    end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y"),
                                                activity__code = data.get("code"),
                                                activity__name = data.get("activity"))[0]
         if (check_flow):
