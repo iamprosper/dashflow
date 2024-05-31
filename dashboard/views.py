@@ -67,7 +67,7 @@ def process_data(form):
 
 
 def fill_db(request):
-    load_inbound("media/uploads/05-2024.csv")
+    load_inbound("media/uploads/2024-01.csv")
     return render(request, 'dashboard/fill.html')
 
 def upload_file(request):
@@ -315,7 +315,7 @@ def process_file(request):
 
 def load_inbound(file_path):
     def status_text_converter(value):
-        if pd.isna(value):
+        if pd.isna(value) or type(value) == str:
             return ""
         else:
             return str(value)
@@ -332,11 +332,12 @@ def load_inbound(file_path):
         'Abandon': int
     }
 
-    """def int_converter(value):
-        if pd.isna(value):
+    def int_converter(value):
+        try:
+            return int(value)
+        except:
             return 0
-        else:
-            return int(value)"""
+            
     # global df
 
     df = pd.read_csv(
@@ -354,21 +355,30 @@ def load_inbound(file_path):
             'RerouteDuration',
             'Abandon'
         ],
-        dtype=column_types,
+        # dtype=column_types,
         parse_dates= ['CallLocalTime'],
         encoding='utf-32be',
         converters={
-            'StatusText': status_text_converter
+            'StatusText': status_text_converter,
+            'CallType': int_converter,
+            'LastCampaign': int_converter,
+            'LastAgent': int_converter,
+            'WaitDuration': int_converter,
+            'ConvDuration': int_converter,
+            'WrapupDuration': int_converter,
+            'Overflow': int_converter,
+            'RerouteDuration': int_converter,
+            'Abandon': int_converter
             }
     )
 
     df = df.dropna(subset=["WaitDuration"])
     df = df.dropna(subset=["ConvDuration"])
 
-    numeric_columns = df.select_dtypes(include=np.number).columns
-    non_numeric_columns = df.columns.difference(numeric_columns)
+    # numeric_columns = df.select_dtypes(include=np.number).columns
+    # non_numeric_columns = df.columns.difference(numeric_columns)
 
-    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
+    # df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
     # df['handled'] = df[
     #     (df['ConvDuration'].apply(lambda cell: 1 if cell >= 10 else 0))
     #     & (df['LastAgent'] > 0)
@@ -398,16 +408,99 @@ def load_inbound(file_path):
         lambda row: 1 if row['Abandon'] == 1 else 0, axis=1
     )
 
-    day_frame = df[
-            (df['CallLocalTime'].apply(lambda x: x.day == 6))
-            & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
-            & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))
-        ]
-    tmoney_rows = day_frame[
-        day_frame['LastCampaign'].isin([1845, 1846, 1847])
-    ]
+    # days_of_week = ['Monday',
+    #                     'Tuesday',
+    #                     'Wednesday',
+    #                     'Thursday',
+    #                     'Friday',
+    #                     'Saturday',
+    #                     'Sunday'
+    #                     ]
 
-    tmoney_offered = tmoney_rows['CallType'].sum()
+    for day in range(df['CallLocalTime'].min().day, df['CallLocalTime'].max().day + 1):
+    # day = 1
+        day_frame = df[
+                (df['CallLocalTime'].apply(lambda x: x.day == day))
+                & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
+                & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))
+            ]
+        day_time_stamps = day_frame['CallLocalTime'].iloc[0]
+        day_date = day_time_stamps.date()
+        day_name = day_time_stamps.strftime('%A')
+        
+        print('**********************Day {}****************'.format(day))
+
+        activities = list(Activity.objects.all())
+
+        for activity in activities:
+            if activity.name == 'FRAN' and day_name == 'Sunday':
+                continue
+            else:
+                activity_codes_file = list(activity.code_file.values_list('code', flat=True))
+                activity_rows = day_frame[
+                    day_frame['LastCampaign'].isin(activity_codes_file)
+                ]
+                activity_offered = activity_rows['CallType'].sum()
+                activity_handled_rows = activity_rows[activity_rows['handled'] == 1]
+                if not activity_handled_rows.empty:
+                    activity_handled = activity_handled_rows['handled'].sum()
+                    activity_ignored = activity_rows[activity_rows['ignored'] == 1]['ignored'].sum()
+                    activity_rerouted = activity_rows[activity_rows['rerouted'] == 1]['rerouted'].sum()
+                    activity_ivr = activity_rows['lost_ivr'].sum()
+                    activity_gived_up = activity_rows['gived_up'].sum()
+                    activity_dma = round(activity_handled_rows['WaitDuration'].mean())
+                    activity_dmc = round(activity_handled_rows['ConvDuration'].mean())
+                    activity_dpt = round(activity_handled_rows['WrapupDuration'].mean())
+                    activity_dmt = activity_dmc + activity_dpt
+                    activity_qs = round(
+                        (activity_handled + activity_rerouted )/(activity_offered - activity_ignored - activity_ivr) * 100, 1
+                        )
+                    activity_sl = round((activity_handled_rows['ns_ok'].sum()/activity_handled) * 100, 1)
+
+                    # Filling KPIs in DB
+                    # sleep(5)
+                    print('Starting save in DB')
+
+                    lf = LittleFlow()
+                    lf.activity = activity
+                    lf.process_date = day_date
+                    lf.offered_calls = activity_offered
+                    lf.dealed_calls = activity_handled
+                    lf.ivr = activity_ivr
+                    lf.ignored = activity_ignored
+                    lf.gived_up = activity_gived_up
+                    lf.dma = activity_dma
+                    lf.dmc = activity_dmc
+                    lf.dpt = activity_dpt
+                    lf.dmt = activity_dmt
+                    lf.sl = activity_sl
+                    lf.qs = activity_qs
+                    # sleep(5)
+                    print('Before saving in DB')
+                    # sleep(5)
+                    lf.save()
+                    # print('After saving in DB')
+                    # sleep(5)
+                    # break
+
+                    print('===============Activity {} ==============='.format(activity.name))
+                    print('Offered: {}'.format(activity_offered))
+                    print('Handled: {}'.format(activity_handled_rows['handled'].sum()))
+                    print('Ignored : {}'.format(activity_ignored))
+                    print('Lost Ivr: {}'.format(activity_ivr))
+                    print('Abandonned: {}'.format(activity_gived_up))
+                    print('Rerouted: {}'.format(activity_rerouted))
+                    print('DMA: {}'.format(activity_dma))
+                    print('DMC: {}'.format(activity_dmc))
+                    print('DPT: {}'.format(activity_dpt))
+                    print('DMT: {}'.format(activity_dmt))
+
+                    print('Total call 20s {}'.format(activity_rows['ns_ok'].sum()))
+                    print('SL: {}'.format(activity_sl))
+                    print('QS: {}'.format(activity_qs))
+                else:
+                    print('**************************************No working day for activity {}'.format(activity.name))
+    """tmoney_offered = tmoney_rows['CallType'].sum()
 
     tmoney_rows_handled = tmoney_rows[tmoney_rows['handled'] == 1]
     tmoney_ignored = tmoney_rows[tmoney_rows['ignored'] == 1]['ignored'].sum()
@@ -419,23 +512,10 @@ def load_inbound(file_path):
     tmoney_dpt = round(tmoney_rows_handled['WrapupDuration'].mean())
     tmoney_dmt = tmoney_dmc + tmoney_dpt
     qs = round((tmoney_rows_handled['handled'].sum() + tmoney_rerouted)/(tmoney_offered - tmoney_ignored - tmoney_ivr) * 100, 1)
-    sl = round((tmoney_rows_handled['ns_ok'].sum()/tmoney_rows_handled['handled'].sum()) * 100, 1)
+    sl = round((tmoney_rows_handled['ns_ok'].sum()/tmoney_rows_handled['handled'].sum()) * 100, 1)"""
     
-    print('Offered: {}'.format(tmoney_offered))
-    print('Handled: {}'.format(tmoney_rows_handled['handled'].sum()))
-    print('Ignored : {}'.format(tmoney_ignored))
-    print('Lost Ivr: {}'.format(tmoney_rows['lost_ivr'].sum()))
-    print('Rerouted: {}'.format(tmoney_rerouted))
-    print('DMA: {}'.format(tmoney_dma))
-    print('DMC: {}'.format(tmoney_dmc))
-    print('DPT: {}'.format(tmoney_dpt))
-    print('DMT: {}'.format(tmoney_dmt))
 
-    print('Total call 20s {}'.format(tmoney_rows['ns_ok'].sum()))
-    print('SL: {}'.format(sl))
-    print('QS: {}'.format(qs))
-
-    lf = LittleFlow.objects.all()
+    """lf = LittleFlow.objects.all()
     # print(lf)
     for instance in lf:
         print(instance)
@@ -455,7 +535,7 @@ def load_inbound(file_path):
             instance.sl = sl
             instance.save()
         else:
-            print('=========Not founded=======')
+            print('=========Not founded=======')"""
     
 
     # days = filter_days()

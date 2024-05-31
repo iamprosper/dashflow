@@ -64,8 +64,8 @@ class Flow(models.Model):
 
 
 class LittleFlow(models.Model):
-    start_date = models.DateField()
-    end_date = models.DateField()
+    process_date = models.DateField()
+    # end_date = models.DateField()
     activity = models.OneToOneField(
         Activity,
         on_delete = models.CASCADE,
@@ -80,8 +80,8 @@ class LittleFlow(models.Model):
     ivr = models.IntegerField(verbose_name="IVR")
     ignored = models.IntegerField(verbose_name="Ignored")
     gived_up = models.IntegerField(verbose_name='Abandonned')
-    qs = models.IntegerField(verbose_name='QS')
-    sl = models.IntegerField(verbose_name='SL')
+    qs = models.DecimalField(verbose_name='QS', max_digits=3, decimal_places=1)
+    sl = models.DecimalField(verbose_name='SL', max_digits=3, decimal_places=1)
 
     def __str__(self) -> str:
         return '''
