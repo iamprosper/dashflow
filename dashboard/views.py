@@ -9,6 +9,7 @@ from django.templatetags import static
 import jsonpickle
 import numpy as np
 import pandas as pd
+from django.views.decorators.csrf import csrf_exempt
 
 
 from .models import Flow, LittleFlow, UploadedFile, Activity
@@ -20,8 +21,10 @@ from asgiref.sync import async_to_sync
 # Create your views here.
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == "XMLHttpRequest"
+
+@csrf_exempt
 def index(request):
-    if request.method == 'POST' and is_ajax(request=request):
+    if request.method == 'POST':
         print("---------Posted--------")
         data_str = request.body.decode('utf-8')
         data = json.loads(data_str)
@@ -29,10 +32,10 @@ def index(request):
         end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y")
         check_flow = LittleFlow.objects.filter(process_date__range=(start_date, end_date),
                                             #    end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y"),
-                                               activity__code = data.get("code"),
-                                               activity__name = data.get("activity"))[0]
+                                            #    activity__code = data.get("code"),
+                                               activity__name = data.get("activity"))
         if (check_flow):
-           print(check_flow)
+           check_flow = check_flow[0]
            activity = data.get("activity")
            json_str = jsonpickle.encode(check_flow)
         #    json_strr = json.dumps(check_flow)

@@ -45,6 +45,8 @@ $(document).ready(function(){
     $("#activity").click(function(){
         code =  $(this).val();
         activity = $("#activity :selected").text();
+        console.log(`Code : ${code}`);
+        console.log(`Activity : ${activity}`);
     });
     
     $("button").click(function(event){
@@ -73,7 +75,8 @@ $(document).ready(function(){
             }
             if (min_selected_date){
                 // alert(min_selected_date)
-                $.ajax({
+                console.log(inbound_ext_values);
+                /*$.ajax({
                     type: 'POST',
                     url: '/dashboard/',
                     data: JSON.stringify(inbound_ext_values),
@@ -93,7 +96,7 @@ $(document).ready(function(){
                         console.log(`${xhr.status}: ${xhr.responseText}`);
                     }
                     // url: '/process'
-                })
+                })*/
             }
 
         }
