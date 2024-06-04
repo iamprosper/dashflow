@@ -35,11 +35,12 @@ def index(request):
                                             #    activity__code = data.get("code"),
                                                activity__name = data.get("activity"))
         if (check_flow):
-           check_flow = check_flow[0]
+           print(check_flow)
+           ex_flow = check_flow[0]
+           json_str = jsonpickle.encode(ex_flow)
            activity = data.get("activity")
-           json_str = jsonpickle.encode(check_flow)
         #    json_strr = json.dumps(check_flow)
-           cf_dict = check_flow.__dict__
+           cf_dict = ex_flow.__dict__
            print(cf_dict)
            cf_dict.pop('_state')
            cf_json = json.dumps(cf_dict, default=str, indent=4)
@@ -49,7 +50,7 @@ def index(request):
            return JsonResponse({"message":cf_json, "activity": activity})
             # return render(request, 'results.html', {'flow': check_flow})
         
-        response_data = {'message': 'Données Inexistantes'}
+        response_data = {'message': json.dumps({'result':'Données Inexistantes'})}
         
         return JsonResponse(response_data)
         """form = FilterFlow(request.POST)

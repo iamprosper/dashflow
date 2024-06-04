@@ -1,3 +1,4 @@
+var activity = "";
 $(document).ready(function(){
     let dealed;
     let dma;
@@ -38,19 +39,27 @@ $(document).ready(function(){
             // }
         }
     });
-    var activity = "";
     var code = "";
     var date_set = false;
     
-    $("#activity").click(function(){
+    /*$("#activity").click(function(){
         code =  $(this).val();
         activity = $("#activity :selected").text();
         console.log(`Code : ${code}`);
         console.log(`Activity : ${activity}`);
-    });
+    });*/
+
+    $("#activity").click(getActivity);
+    
+    function getActivity(event){
+        code = event.target.value;
+        console.log(`Code : ${code}`);
+        console.log(`Activity : ${activity}`);
+    }
     
     $("button").click(function(event){
         
+        activity = $("#activity :selected").text();
         event.preventDefault();
         console.log(cleared_dates);
         // console.log(dd);
@@ -76,7 +85,7 @@ $(document).ready(function(){
             if (min_selected_date){
                 // alert(min_selected_date)
                 console.log(inbound_ext_values);
-                /*$.ajax({
+                $.ajax({
                     type: 'POST',
                     url: '/dashboard/',
                     data: JSON.stringify(inbound_ext_values),
@@ -96,7 +105,7 @@ $(document).ready(function(){
                         console.log(`${xhr.status}: ${xhr.responseText}`);
                     }
                     // url: '/process'
-                })*/
+                })
             }
 
         }
