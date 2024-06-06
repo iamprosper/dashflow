@@ -58,13 +58,15 @@ def index(request):
                     ivr+= flow.ivr
                     gived_up+= flow.gived_up
                     ignored+=flow.ignored
+                    sl_dealed_calls = flow.sl_dealed_calls
                 
                 period_flow["offered"] = offered
-                period_flow["incoming"] = incoming
+                period_flow["incoming_calls"] = incoming
                 period_flow["ivr"] = ivr
                 period_flow["gived_up"] = gived_up
-                period_flow["offered"] = offered
+                period_flow["offered_calls"] = offered
                 period_flow['qs'] = round((period_flow['dealed']/(period_flow['incoming'] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
+                period_flow['sl'] = round(((flow.sl_dealed_calls/flow.dealed_calls) * 100), 1)
                 # period_flow['sl'] = round()
             activity = data.get("activity")
             # cf_dict = unique_flow.__dict__
