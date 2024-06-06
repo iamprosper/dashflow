@@ -35,19 +35,46 @@ def index(request):
                                             #    activity__code = data.get("code"),
                                                activity__name = data.get("activity"))
         if (check_flow):
-           print(check_flow)
-           ex_flow = check_flow[0]
-           json_str = jsonpickle.encode(ex_flow)
-           activity = data.get("activity")
-        #    json_strr = json.dumps(check_flow)
-           cf_dict = ex_flow.__dict__
-           print(cf_dict)
-           cf_dict.pop('_state')
-           cf_json = json.dumps(cf_dict, default=str, indent=4)
-           print(type(cf_dict))
-           print(cf_json)
-           print(type(cf_json))
-           return JsonResponse({"message":cf_json, "activity": activity})
+            print(check_flow)
+            period_flow = {}
+            if len(check_flow < 2):
+                period_flow = check_flow[0]
+                period_flow = period_flow.__dict__
+                period_flow.pop('_state')
+                # json_str = jsonpickle.encode(period_flow)
+            #    json_strr = json.dumps(check_flow)
+            else:
+                incoming = 0
+                offered = 0
+                dealed = 0
+                ivr = 0
+                gived_up = 0
+                ignored = 0
+
+                for flow in check_flow:
+                    offered+= flow.offered_calls
+                    incoming+= flow.incoming_calls
+                    dealed+=flow.dealed_calls
+                    ivr+= flow.ivr
+                    gived_up+= flow.gived_up
+                    ignored+=flow.ignored
+                
+                period_flow["offered"] = offered
+                period_flow["incoming"] = incoming
+                period_flow["ivr"] = ivr
+                period_flow["gived_up"] = gived_up
+                period_flow["offered"] = offered
+                period_flow['qs'] = round((period_flow['dealed']/(period_flow['incoming'] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
+                # period_flow['sl'] = round()
+            activity = data.get("activity")
+            # cf_dict = unique_flow.__dict__
+            print(period_flow)
+            # cf_dict.pop('_state')
+            cf_json = json.dumps(period_flow, default=str, indent=4)
+            print(type(period_flow))
+            print(cf_json)
+            print(type(cf_json))
+            return JsonResponse({"message":cf_json, "activity": activity})
             # return render(request, 'results.html', {'flow': check_flow})
         
         response_data = {'message': json.dumps({'result':'Données Inexistantes'})}
@@ -410,9 +437,9 @@ def load_inbound(file_path):
         lambda row: 1 if row['WaitDuration'] <= 20
         and row['handled'] == 1 else 0, axis=1
     )
-    df['gived_up'] = df.apply(
+    """df['gived_up'] = df.apply(
         lambda row: 1 if row['Abandon'] == 1 else 0, axis=1
-    )
+    )"""
 
     # days_of_week = ['Monday',
     #                     'Tuesday',
@@ -446,13 +473,14 @@ def load_inbound(file_path):
                 activity_rows = day_frame[
                     day_frame['LastCampaign'].isin(activity_codes_file)
                 ]
-                activity_offered = activity_rows['CallType'].sum()
+                activity_incoming = activity_rows['CallType'].sum()
                 activity_handled_rows = activity_rows[activity_rows['handled'] == 1]
                 if not activity_handled_rows.empty:
                     activity_handled = activity_handled_rows['handled'].sum()
                     activity_ignored = activity_rows[activity_rows['ignored'] == 1]['ignored'].sum()
                     activity_rerouted = activity_rows[activity_rows['rerouted'] == 1]['rerouted'].sum()
                     activity_ivr = activity_rows['lost_ivr'].sum()
+                    activity_offered = activity_incoming - activity_ivr
                     activity_gived_up = activity_rows[
                         (activity_rows['WaitDuration'] > 0)
                         &(activity_rows['Overflow'] == 0)
@@ -462,16 +490,17 @@ def load_inbound(file_path):
                     activity_dmc = round((activity_handled_rows['ConvDuration'].mean()))
                     activity_dpt = round((activity_handled_rows['WrapupDuration'].mean()))
                     activity_dmt = activity_dmc + activity_dpt
-                    # activity_qs = round(((activity_handled + activity_rerouted /(activity_offered - activity_ignored - activity_ivr)) * 100) , 1)
-                    activity_qs = round(((activity_handled + activity_rerouted)/(activity_offered - activity_ignored - activity_ivr)) * 100, 1)
+                    # activity_qs = round(((activity_handled + activity_rerouted /(activity_incoming - activity_ignored - activity_ivr)) * 100) , 1)
+                    activity_qs = round(((activity_handled + activity_rerouted)/(activity_incoming - activity_ignored - activity_ivr)) * 100, 1)
                     activity_sl = round(((activity_handled_rows['ns_ok'].sum()/activity_handled) * 100), 1)
-
+                    activity_sl_dealed = activity_handled_rows['ns_ok'].sum()
                     # Filling KPIs in DB
                     # sleep(5)
                     print('Before saving in DB')
                     LittleFlow(
                         activity=activity,
                         process_date=day_date,
+                        incoming_calls = activity_incoming,
                         offered_calls = activity_offered,
                         dealed_calls = activity_handled,
                         ivr = activity_ivr,
@@ -482,11 +511,12 @@ def load_inbound(file_path):
                         dpt = activity_dpt,
                         dmt = activity_dmt,
                         sl = activity_sl,
-                        qs = activity_qs
+                        qs = activity_qs,
+                        sl_dealed_calls = activity_sl_dealed
                     ).save()
                     # lf.activity = activity
                     # lf.process_date = day_date
-                    # lf.offered_calls = activity_offered
+                    # lf.incoming_calls = activity_incoming
                     # lf.dealed_calls = activity_handled
                     # lf.ivr = activity_ivr
                     # lf.ignored = activity_ignored
@@ -506,7 +536,7 @@ def load_inbound(file_path):
                     # break
 
                     """print('===============Activity {} ==============='.format(activity.name))
-                    print('Offered: {}'.format(activity_offered))
+                    print('incoming: {}'.format(activity_incoming))
                     print('Handled: {}'.format(activity_handled_rows['handled'].sum()))
                     print('Ignored : {}'.format(activity_ignored))
                     print('Lost Ivr: {}'.format(activity_ivr))
@@ -522,7 +552,7 @@ def load_inbound(file_path):
                     print('QS: {}'.format(activity_qs))"""
                 else:
                     print('**************************************No working day for activity {}'.format(activity.name))
-    """tmoney_offered = tmoney_rows['CallType'].sum()
+    """tmoney_incoming = tmoney_rows['CallType'].sum()
 
     tmoney_rows_handled = tmoney_rows[tmoney_rows['handled'] == 1]
     tmoney_ignored = tmoney_rows[tmoney_rows['ignored'] == 1]['ignored'].sum()
@@ -533,7 +563,7 @@ def load_inbound(file_path):
     tmoney_dmc = round(tmoney_rows_handled['ConvDuration'].mean())
     tmoney_dpt = round(tmoney_rows_handled['WrapupDuration'].mean())
     tmoney_dmt = tmoney_dmc + tmoney_dpt
-    qs = round((tmoney_rows_handled['handled'].sum() + tmoney_rerouted)/(tmoney_offered - tmoney_ignored - tmoney_ivr) * 100, 1)
+    qs = round((tmoney_rows_handled['handled'].sum() + tmoney_rerouted)/(tmoney_incoming - tmoney_ignored - tmoney_ivr) * 100, 1)
     sl = round((tmoney_rows_handled['ns_ok'].sum()/tmoney_rows_handled['handled'].sum()) * 100, 1)"""
     
 
@@ -549,7 +579,7 @@ def load_inbound(file_path):
             # and instance.dma == tmoney_dma
             ):
             print("------Founded-----")
-            instance.offered_calls = tmoney_offered
+            instance.incoming_calls = tmoney_incoming
             instance.ignored = tmoney_ignored
             instance.ivr = tmoney_ivr
             instance.gived_up = tmoney_gived_up
@@ -584,7 +614,7 @@ def load_inbound(file_path):
             & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))
         ]
 
-        tmoney_rows_offered = tmoney_rows['CallType'].sum()
+        tmoney_rows_incoming = tmoney_rows['CallType'].sum()
         tmoney_rows_lost_ivr= tmoney_rows['lost_ivr'].sum()
         tmoney_rows_handled = tmoney_rows[tmoney_rows['handled'] == 1]
         tmoney_rows_dma = round(tmoney_rows_handled['WaitDuration'].mean())
@@ -593,7 +623,7 @@ def load_inbound(file_path):
         tmoney_rows_dmt = tmoney_rows_dmc + tmoney_rows_dpt
 
         tmoney_stats = {
-            'offered': tmoney_rows_offered,
+            'incoming': tmoney_rows_incoming,
             'lost_ivr': tmoney_rows_lost_ivr,
             'dma': tmoney_rows_dma,
             'dmc': tmoney_rows_dmc,
@@ -607,7 +637,7 @@ def load_inbound(file_path):
             & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
             & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))
         ]
-        fixe_rows_offered = fixe_rows['CallType'].sum()
+        fixe_rows_incoming = fixe_rows['CallType'].sum()
         fixe_rows_lost_ivr= fixe_rows['lost_ivr'].sum()
         fixe_rows_handled = fixe_rows[fixe_rows['handled'] == 1]
         fixe_rows_dma = round(fixe_rows_handled['WaitDuration'].mean())
@@ -616,7 +646,7 @@ def load_inbound(file_path):
         fixe_rows_dmt = fixe_rows_dmc + fixe_rows_dpt
 
         fixe_stats = {
-            'offered': fixe_rows_offered,
+            'incoming': fixe_rows_incoming,
             'lost_ivr': fixe_rows_lost_ivr,
             'dma': fixe_rows_dma,
             'dmc': fixe_rows_dmc,
@@ -630,7 +660,7 @@ def load_inbound(file_path):
             & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
             & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))
         ]
-        mobile_rows_offered = mobile_rows['CallType'].sum()
+        mobile_rows_incoming = mobile_rows['CallType'].sum()
         mobile_rows_lost_ivr= mobile_rows['lost_ivr'].sum()
         mobile_rows_handled = mobile_rows[mobile_rows['handled'] == 1]
         mobile_rows_dma = round(mobile_rows_handled['WaitDuration'].mean())
@@ -639,7 +669,7 @@ def load_inbound(file_path):
         mobile_rows_dmt = mobile_rows_dmc + mobile_rows_dpt
 
         mobile_stats = {
-            'offered': mobile_rows_offered,
+            'incoming': mobile_rows_incoming,
             'lost_ivr': mobile_rows_lost_ivr,
             'dma': mobile_rows_dma,
             'dmc': mobile_rows_dmc,
@@ -653,7 +683,7 @@ def load_inbound(file_path):
             & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
             & (df['CallLocalTime'].apply(lambda x: x.hour <= 21))
         ]
-        pdv_rows_offered = pdv_rows['CallType'].sum()
+        pdv_rows_incoming = pdv_rows['CallType'].sum()
         pdv_rows_lost_ivr= pdv_rows['lost_ivr'].sum()
         pdv_rows_handled = pdv_rows[pdv_rows['handled'] == 1]
         pdv_rows_dma = round(pdv_rows_handled['WaitDuration'].mean())
@@ -662,7 +692,7 @@ def load_inbound(file_path):
         pdv_rows_dmt = pdv_rows_dmc + pdv_rows_dpt
 
         pdv_stats = {
-            'offered': pdv_rows_offered,
+            'incoming': pdv_rows_incoming,
             'lost_ivr': pdv_rows_lost_ivr,
             'dma': pdv_rows_dma,
             'dmc': pdv_rows_dmc,
@@ -692,7 +722,7 @@ def load_inbound(file_path):
         # if (days_of_week[weekday] != 'Sunday'):
         #     print("Fran day number - {}, day name {}".format(weekday, days_of_week[weekday]))
         if (days_of_week[weekday] != 'Sunday'):
-            fran_rows_offered = fran_rows['CallType'].sum()
+            fran_rows_incoming = fran_rows['CallType'].sum()
             fran_rows_lost_ivr= fran_rows['lost_ivr'].sum()
             fran_rows_handled = fran_rows[fran_rows['handled'] == 1]
             if not fran_rows_handled.empty:
@@ -702,7 +732,7 @@ def load_inbound(file_path):
             # fran_rows_dmt = fran_rows_dmc + fran_rows_dpt
 
                 fran_stats = {
-                    'offered': fran_rows_offered,
+                    'incoming': fran_rows_incoming,
                     'lost_ivr': fran_rows_lost_ivr,
                     'dma': fran_rows_dma,
                     'dmc': fran_rows_dmc,

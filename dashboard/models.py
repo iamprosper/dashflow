@@ -72,6 +72,7 @@ class LittleFlow(models.Model):
         # primary_key = True,
     )"""
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    incoming_calls = models.IntegerField(verbose_name="Incoming")
     offered_calls = models.IntegerField(verbose_name="Offered")
     dealed_calls = models.IntegerField(verbose_name="Dealed")
     dma = models.IntegerField(verbose_name="DMA")
@@ -83,6 +84,7 @@ class LittleFlow(models.Model):
     gived_up = models.IntegerField(verbose_name='Abandonned')
     qs = models.FloatField(verbose_name='QS')
     sl = models.FloatField(verbose_name='SL')
+    sl_dealed_calls = models.IntegerField(verbose_name='Dealed in SL', default=0)
     def __str__(self) -> str:
         return '''
     Offered calls {}
