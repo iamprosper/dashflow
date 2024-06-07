@@ -27,6 +27,18 @@ class Agent(models.Model):
     def __str__(self) -> str:
         return "{} {}".format(self.last_name, self.first_name)
 
+class DayKpiDuration(models.Model):
+    process_date = models.DateField(verbose_name="Date")
+    activity = models.OneToOneField(
+        Activity,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    waitDuration = models.IntegerField(verbose_name="Temps d'attente")
+    convDuration = models.IntegerField(verbose_name="Temps de communication")
+    wrapUpDuration = models.IntegerField(verbose_name="Temps de PostTravail")
+
+
 
 class Flow(models.Model):
     start_date = models.DateField(verbose_name="Date début")
