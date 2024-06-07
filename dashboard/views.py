@@ -37,10 +37,13 @@ def index(request):
         if (check_flow):
             print(check_flow)
             period_flow = {}
-            if len(check_flow < 2):
+            if len(check_flow) < 2:
                 period_flow = check_flow[0]
                 period_flow = period_flow.__dict__
                 period_flow.pop('_state')
+                period_flow.pop('wait_duration')
+                period_flow.pop('conv_duration')
+                period_flow.pop('wrapup_duration')
                 # json_str = jsonpickle.encode(period_flow)
             #    json_strr = json.dumps(check_flow)
             else:
@@ -50,6 +53,10 @@ def index(request):
                 ivr = 0
                 gived_up = 0
                 ignored = 0
+                waitDuration = 0
+                convDuration = 0
+                wrapUpDuration = 0
+                sl_dealed_calls = 0
 
                 for flow in check_flow:
                     offered+= flow.offered_calls
@@ -58,15 +65,38 @@ def index(request):
                     ivr+= flow.ivr
                     gived_up+= flow.gived_up
                     ignored+=flow.ignored
+                    waitDuration+= flow.wait_duration
+                    convDuration+= flow.conv_duration
+                    wrapUpDuration+= flow.wrapup_duration
                     sl_dealed_calls = flow.sl_dealed_calls
                 
-                period_flow["offered"] = offered
-                period_flow["incoming_calls"] = incoming
-                period_flow["ivr"] = ivr
-                period_flow["gived_up"] = gived_up
+                """days_kpi_duration = DayKpiDuration.objects.filter(
+                    process_date__range=(start_date, end_date),
+                    activity__name=data.get("activity")
+                    )
+                
+                waitDuration = 0
+                convDuration = 0
+                wrapUpDuration = 0
+
+                for day_kpi in days_kpi_duration:
+                    waitDuration+=day_kpi.waitDuration
+                    convDuration+=day_kpi.convDuration
+                    wrapUpDuration+=day_kpi.wrapUpDuration"""
+
+                
                 period_flow["offered_calls"] = offered
-                period_flow['qs'] = round((period_flow['dealed']/(period_flow['incoming'] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
-                period_flow['sl'] = round(((flow.sl_dealed_calls/flow.dealed_calls) * 100), 1)
+                period_flow["incoming_calls"] = incoming
+                period_flow["dealed_calls"] = dealed
+                period_flow["ivr"] = ivr
+                period_flow["ignored"] = ignored
+                period_flow["gived_up"] = gived_up
+                period_flow['qs'] = round((period_flow["dealed_calls"]/(period_flow["incoming_calls"] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
+                period_flow['sl'] = round(((sl_dealed_calls/dealed) * 100), 1)
+                period_flow['dma'] = round(waitDuration/dealed)
+                period_flow['dmc'] = round(convDuration/dealed)
+                period_flow['dpt'] = round(wrapUpDuration/dealed)
+                period_flow['dmt'] = period_flow['dmc'] + period_flow['dpt']
                 # period_flow['sl'] = round()
             activity = data.get("activity")
             # cf_dict = unique_flow.__dict__
@@ -452,7 +482,11 @@ def load_inbound(file_path):
     #                     'Sunday'
     #                     ]
 
+
     for day in range(df['CallLocalTime'].min().day, df['CallLocalTime'].max().day + 1):
+        # waitDuration = 0
+        # wrapUpDuration = 0
+        # convDuration = 0
     # day = 3
         day_frame = df[
                 (df['CallLocalTime'].apply(lambda x: x.day == day))
@@ -496,6 +530,9 @@ def load_inbound(file_path):
                     activity_qs = round(((activity_handled + activity_rerouted)/(activity_incoming - activity_ignored - activity_ivr)) * 100, 1)
                     activity_sl = round(((activity_handled_rows['ns_ok'].sum()/activity_handled) * 100), 1)
                     activity_sl_dealed = activity_handled_rows['ns_ok'].sum()
+                    activity_waitDuration = activity_handled_rows['WaitDuration'].sum()
+                    activity_convDuration = activity_handled_rows['ConvDuration'].sum()
+                    activity_wrapUpDuration = activity_handled_rows['WrapupDuration'].sum()
                     # Filling KPIs in DB
                     # sleep(5)
                     print('Before saving in DB')
@@ -514,8 +551,19 @@ def load_inbound(file_path):
                         dmt = activity_dmt,
                         sl = activity_sl,
                         qs = activity_qs,
-                        sl_dealed_calls = activity_sl_dealed
+                        sl_dealed_calls = activity_sl_dealed,
+                        wait_duration = activity_waitDuration,
+                        wrapup_duration = activity_wrapUpDuration,
+                        conv_duration = activity_convDuration
                     ).save()
+
+                    """DayKpiDuration(
+                        process_date = day_date,
+                        activity = activity,
+                        waitDuration = waitDuration,
+                        convDuration = convDuration,
+                        wrapUpDuration = wrapUpDuration
+                    ).save()"""
                     # lf.activity = activity
                     # lf.process_date = day_date
                     # lf.incoming_calls = activity_incoming

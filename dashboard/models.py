@@ -27,16 +27,12 @@ class Agent(models.Model):
     def __str__(self) -> str:
         return "{} {}".format(self.last_name, self.first_name)
 
-class DayKpiDuration(models.Model):
+"""class DayKpiDuration(models.Model):
     process_date = models.DateField(verbose_name="Date")
-    activity = models.OneToOneField(
-        Activity,
-        on_delete=models.CASCADE,
-        primary_key=True,
-    )
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     waitDuration = models.IntegerField(verbose_name="Temps d'attente")
     convDuration = models.IntegerField(verbose_name="Temps de communication")
-    wrapUpDuration = models.IntegerField(verbose_name="Temps de PostTravail")
+    wrapUpDuration = models.IntegerField(verbose_name="Temps de PostTravail")"""
 
 
 
@@ -97,6 +93,10 @@ class LittleFlow(models.Model):
     qs = models.FloatField(verbose_name='QS')
     sl = models.FloatField(verbose_name='SL')
     sl_dealed_calls = models.IntegerField(verbose_name='Dealed in SL', default=0)
+    wait_duration = models.IntegerField(verbose_name="Total Waiting Duration")
+    conv_duration = models.IntegerField(verbose_name="Total Conv Duration")
+    wrapup_duration = models.IntegerField(verbose_name="Total WrapUp duration")
+
     def __str__(self) -> str:
         return '''
     Offered calls {}
