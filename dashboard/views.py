@@ -68,7 +68,7 @@ def index(request):
                     waitDuration+= flow.wait_duration
                     convDuration+= flow.conv_duration
                     wrapUpDuration+= flow.wrapup_duration
-                    sl_dealed_calls = flow.sl_dealed_calls
+                    sl_dealed_calls+= flow.sl_dealed_calls
                 
                 """days_kpi_duration = DayKpiDuration.objects.filter(
                     process_date__range=(start_date, end_date),
@@ -91,7 +91,7 @@ def index(request):
                 period_flow["ivr"] = ivr
                 period_flow["ignored"] = ignored
                 period_flow["gived_up"] = gived_up
-                period_flow['qs'] = round((period_flow["dealed_calls"]/(period_flow["incoming_calls"] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
+                period_flow['qs'] = ((period_flow["dealed_calls"]/(period_flow["incoming_calls"] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
                 period_flow['sl'] = round(((sl_dealed_calls/dealed) * 100), 1)
                 period_flow['dma'] = round(waitDuration/dealed)
                 period_flow['dmc'] = round(convDuration/dealed)
@@ -106,6 +106,8 @@ def index(request):
             print(type(period_flow))
             print(cf_json)
             print(type(cf_json))
+            print("Dealed: {}".format(dealed))
+            print("Sl dealed: {}".format(sl_dealed_calls))
             return JsonResponse({"message":cf_json, "activity": activity})
             # return render(request, 'results.html', {'flow': check_flow})
         
