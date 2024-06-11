@@ -126,6 +126,8 @@ class LittleFlow(models.Model):
     self.process_date
     )
 
+# class DetailedFlow(models.Model):
+#     process_date = 
 
 class UploadedFile(models.Model):
     file = models.FileField(upload_to='uploads/')
