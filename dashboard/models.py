@@ -35,6 +35,15 @@ class Agent(models.Model):
     wrapUpDuration = models.IntegerField(verbose_name="Temps de PostTravail")"""
 
 
+class DetailedHour(models.Model):
+    hour_value = models.IntegerField(verbose_name="Hour")
+    def __str__(self):
+        return "{}".format(self.hour_value)
+
+class DetailedMin(models.Model):
+    mn_value = models.IntegerField(verbose_name="Min")
+    def __str__(self):
+        return "{}".format(self.mn_value)
 
 class Flow(models.Model):
     start_date = models.DateField(verbose_name="Date début")
@@ -126,8 +135,68 @@ class LittleFlow(models.Model):
     self.process_date
     )
 
-# class DetailedFlow(models.Model):
-#     process_date = 
+class DetailedFlow(models.Model):
+    process_date = models.DateField()
+    hour = models.ForeignKey(DetailedHour, on_delete=models.CASCADE)
+    mn = models.ForeignKey(DetailedMin, on_delete=models.CASCADE)
+    # end_date = models.DateField()
+    """activity = models.One(
+        Activity,
+        on_delete = models.CASCADE,
+        # primary_key = True,
+    )"""
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    incoming_calls = models.IntegerField(verbose_name="Incoming")
+    offered_calls = models.IntegerField(verbose_name="Offered")
+    dealed_calls = models.IntegerField(verbose_name="Dealed")
+    dma = models.IntegerField(verbose_name="DMA")
+    dmc = models.IntegerField(verbose_name="DMC")
+    dmt = models.IntegerField(verbose_name="DMT")
+    dpt = models.IntegerField(verbose_name="DPT")
+    ivr = models.IntegerField(verbose_name="IVR")
+    ignored = models.IntegerField(verbose_name="Ignored")
+    gived_up = models.IntegerField(verbose_name='Abandonned')
+    qs = models.FloatField(verbose_name='QS')
+    sl = models.FloatField(verbose_name='SL')
+    sl_dealed_calls = models.IntegerField(verbose_name='Dealed in SL', default=0)
+    wait_duration = models.IntegerField(verbose_name="Total Waiting Duration")
+    conv_duration = models.IntegerField(verbose_name="Total Conv Duration")
+    wrapup_duration = models.IntegerField(verbose_name="Total WrapUp duration")
+
+    def __str__(self) -> str:
+        return '''
+    Hour {}
+    Min {}
+    Offered calls {}
+    Dealed calls {}
+    DMA {}
+    DMC {}
+    DPT {}
+    DMC {}
+    Ignored {}
+    IVR {}
+    GIVED UP{}
+    QS {}
+    SL {}
+    Process date {}
+'''.format(
+    self.hour,
+    self.mn,
+    self.offered_calls,
+    self.dealed_calls,
+    self.dma,
+    self.dmc,
+    self.dpt,
+    self.dmt,
+    self.ignored,
+    self.ivr,
+    self.gived_up,
+    self.qs,
+    self.sl,
+    self.process_date
+    )
+
+
 
 class UploadedFile(models.Model):
     file = models.FileField(upload_to='uploads/')

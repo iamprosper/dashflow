@@ -12,7 +12,7 @@ import pandas as pd
 from django.views.decorators.csrf import csrf_exempt
 
 
-from .models import Flow, LittleFlow, UploadedFile, Activity
+from .models import DetailedFlow, DetailedHour, DetailedMin, Flow, LittleFlow, UploadedFile, Activity
 
 from .forms import FileUploadForm, FilterFlow
 from channels.layers import get_channel_layer
@@ -134,7 +134,7 @@ def process_data(form):
 
 
 def fill_db(request):
-    load_inbound("media/uploads/2024-01.csv")
+    load_inbound_per_5_min("media/uploads/2024-01.csv")
     return render(request, 'dashboard/fill.html')
 
 def upload_file(request):
@@ -774,20 +774,20 @@ def load_inbound_per_5_min(file_path):
                 & (df['CallLocalTime'].apply(lambda x: x.hour >= 7))
                 & (df['CallLocalTime'].apply(lambda x: x.hour <= 20))
             ]"""
-        for hour in range(7, 20):
+        for hour in range(7, 21):
             for mn in range(0, 60, 5):
-                day_frame = day_frame[
-                    (df['CallLocalTime'].apply(lambda x: x.hour))
-                    & (df['CallLocalTime'].apply(lambda x: x.min >= mn))
-                    & (df['CallLoclaTime'].apply(lambda x: x.min < (mn + 5)))
+                hour_day_frame = day_frame[
+                    (df['CallLocalTime'].apply(lambda x: x.hour == hour))
+                    & (df['CallLocalTime'].apply(lambda x: x.minute >= mn))
+                    & (df['CallLocalTime'].apply(lambda x: x.minute < (mn + 5)))
                 ]
                 for activity in activities:
-                    if activity.name == 'FRAN' and day_name == 'Sunday':
+                    if (activity.name == 'FRAN' and day_name == 'Sunday') or activity.name == 'FRAN_ALL':
                         continue
                     else:
                         activity_codes_file = list(activity.code_file.values_list('code', flat=True))
-                        activity_rows = day_frame[
-                            day_frame['LastCampaign'].isin(activity_codes_file)
+                        activity_rows = hour_day_frame[
+                            hour_day_frame['LastCampaign'].isin(activity_codes_file)
                         ]
                         activity_incoming = activity_rows['CallType'].sum()
                         activity_handled_rows = activity_rows[activity_rows['handled'] == 1]
@@ -816,7 +816,7 @@ def load_inbound_per_5_min(file_path):
                             # Filling KPIs in DB
                             # sleep(5)
                             print('Before saving in DB')
-                            LittleFlow(
+                            DetailedFlow(
                                 activity=activity,
                                 process_date=day_date,
                                 incoming_calls = activity_incoming,
@@ -834,7 +834,9 @@ def load_inbound_per_5_min(file_path):
                                 sl_dealed_calls = activity_sl_dealed,
                                 wait_duration = activity_waitDuration,
                                 wrapup_duration = activity_wrapUpDuration,
-                                conv_duration = activity_convDuration
+                                conv_duration = activity_convDuration,
+                                hour = DetailedHour.objects.filter(hour_value=hour)[0],
+                                mn = DetailedMin.objects.filter(mn_value=mn)[0]
                             ).save()
 
                             """DayKpiDuration(
