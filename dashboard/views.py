@@ -19,56 +19,71 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import plotly.graph_objs as go
 
-def graph(request):
-    categories = ['7h - 00 min',
-                  '7h - 05 min',
-                  '7h - 10 min',
-                  '7h - 15 min',
-                  '7h - 20 min',
-                  '7h - 25 min',
-                  '7h - 30 min',
-                  '7h - 35 min',
-                  '7h - 40 min',
-                  '7h - 45 min',
-                  '7h - 50 min',
-                  '7h - 55 min',]
+def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
+    hr = 7
+    categories_hour = [f"{hr}h - 00 min",
+                  f"{hr}h - 05 min",
+                  f"{hr}h - 10 min",
+                  f"{hr}h - 15 min",
+                  f"{hr}h - 20 min",
+                  f"{hr}h - 25 min",
+                  f"{hr}h - 30 min",
+                  f"{hr}h - 35 min",
+                  f"{hr}h - 40 min",
+                  f"{hr}h - 45 min",
+                  f"{hr}h - 50 min",
+                  f"{hr}h - 55 min"]
+    
+    categories_day = ["7h",
+                  "8h",
+                  "9h",
+                  "10h",
+                  "11h",
+                  "12h",
+                  "13h",
+                  "14h",
+                  "15h",
+                  "16h",
+                  "17h",
+                  "18h",
+                  "19h",
+                  "20h"]
     
     ic_calls = 0
     p_date = datetime.datetime.strptime("01/01/2024", "%d/%M/%Y")
-    dfm1_7 = DetailedFlowR.objects.filter(process_date=p_date, activity__name="Mobile", hour__hour_value=7)
-    ic_bar = []
-    dealed_bar = []
-    ivr_bar = []
-    ic_line = []
-    for df_1_7 in dfm1_7:
-        ic_calls += df_1_7.incoming_calls
-        ic_bar.append(df_1_7.incoming_calls)
-        dealed_bar.append(df_1_7.dealed_calls)
-        ic_line.append(df_1_7.sl_dealed_calls)
-        ivr_bar.append(df_1_7.ivr)
+    # dfa_h = DetailedFlowR.objects.filter(process_date=p_date, activity__name=activity, hour__hour_value=hr)
+    # dealed_bar = []
+    # ivr_bar = []
+    # ic_line = []
+    for dfa in activity:
+        ic_calls += dfa.incoming_calls
+        ic_bar.append(dfa.incoming_calls)
+        dl_bar.append(dfa.dealed_calls)
+        sl_line.append(dfa.sl_dealed_calls)
+        ivr_bar.append(dfa.ivr)
     
 
     ic_trace_bar = go.Bar(
-        x=categories,
+        x=categories_day,
         y=ic_bar,
         name="Ic Calls Chart"
     )
 
     dealed_trace_bar = go.Bar(
-        x=categories,
-        y=dealed_bar,
+        x=categories_day,
+        y=dl_bar,
         name="Dealed Calls Chart"
     )
 
     ivr_trace_bar = go.Bar(
-        x=categories,
+        x=categories_day,
         y=ivr_bar,
         name="Ivr Calls Chart"
     )
 
     sl_trace_line = go.Scatter(
-        x=categories,
-        y=ic_line,
+        x=categories_day,
+        y=sl_line,
         mode='lines+markers',
         name='Sl Chart'
     )
@@ -85,12 +100,14 @@ def graph(request):
 
     graph_json = fig.to_json()
 
-    context = {
-        'graph_json': graph_json
-    }
+    # context = {
+    #     'graph_json': graph_json
+    # }
 
     print("Ic_calls {}".format(ic_calls) )
-    return render(request, 'dashboard/graphs.html', context)
+    # return render(request, 'dashboard/graphs.html', context)
+    # print(graph_json)
+    return graph_json
 # Create your views here.
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == "XMLHttpRequest"
@@ -181,7 +198,7 @@ def index(request):
             print(type(cf_json))
             # print("Dealed: {}".format(dealed))
             # print("Sl dealed: {}".format(sl_dealed_calls))
-            return JsonResponse({"message":cf_json, "activity": activity})
+            return JsonResponse({"message":cf_json, "activity": activity, "graph_json": graph_json})
             # return render(request, 'results.html', {'flow': check_flow})
         
         response_data = {'message': json.dumps({'result':'Données Inexistantes'})}
@@ -195,6 +212,159 @@ def index(request):
     else:
         form = FilterFlow()
     return render(request, 'dashboard/index.html', {'form': form})
+
+@csrf_exempt
+def index_r(request):
+    if request.method == 'POST':
+        print("---------Posted--------")
+        data_str = request.body.decode('utf-8')
+        data = json.loads(data_str)
+        start_date = datetime.datetime.strptime(data.get("start_date"), "%d/%m/%Y")
+        end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y")
+        """check_flow = LittleFlow.objects.filter(process_date__range=(start_date, end_date),
+                                            #    end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y"),
+                                            #    activity__code = data.get("code"),
+                                               activity__name = data.get("activity"))"""
+        check_flow = DetailedFlowR.objects.filter(process_date__range=(start_date, end_date),
+                                            #    end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y"),
+                                            #    activity__code = data.get("code"),
+                                               activity__name = data.get("activity"))
+        # graph_json = ""
+        if (check_flow):
+            print(check_flow)
+            period_flow = {}
+            incoming = 0
+            offered = 0
+            dealed = 0
+            ivr = 0
+            gived_up = 0
+            ignored = 0
+            waitDuration = 0
+            convDuration = 0
+            wrapUpDuration = 0
+            sl_dealed_calls = 0
+            ic_bar = []
+            dl_bar = []
+            ivr_bar = []
+            sl_line = []
+            """if len(check_flow) <= 168:
+                # period_flow = check_flow[0]
+                period_flow = period_flow.__dict__
+                period_flow.pop('_state')
+                period_flow.pop('wait_duration')
+                period_flow.pop('conv_duration')
+                period_flow.pop('wrapup_duration')"""
+            for flow in check_flow:
+                incoming += flow.incoming_calls
+                ivr += flow.ivr
+                ic_bar.append(flow.incoming_calls)
+                dl_bar.append(flow.dealed_calls)
+                sl_line.append(flow.sl_dealed_calls)
+                ivr_bar.append(flow.ivr)
+                dealed += flow.dealed_calls
+                ignored += flow.ignored
+                waitDuration += flow.wait_duration
+                convDuration += flow.conv_duration
+                wrapUpDuration += flow.wrapup_duration
+            
+            graph_json = graph(check_flow, ic_bar, dl_bar, ivr_bar, sl_line)
+            # period_flow["offered_calls"] = offered
+            period_flow["incoming_calls"] = incoming
+            period_flow["dealed_calls"] = dealed
+            period_flow["ivr"] = ivr
+            period_flow["ignored"] = ignored
+            # period_flow["gived_up"] = gived_up
+            period_flow['qs'] = ((period_flow["dealed_calls"]/(period_flow["incoming_calls"] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
+            period_flow['sl'] = round(((sl_dealed_calls/dealed) * 100), 1)
+            period_flow['dma'] = round(waitDuration/dealed)
+            period_flow['dmc'] = round(convDuration/dealed)
+            period_flow['dpt'] = round(wrapUpDuration/dealed)
+            period_flow['dmt'] = period_flow['dmc'] + period_flow['dpt']
+            # period_flow['sl'] = round()
+                    
+
+                # json_str = jsonpickle.encode(period_flow)
+            #    json_strr = json.dumps(check_flow)
+            """else:
+                incoming = 0
+                offered = 0
+                dealed = 0
+                ivr = 0
+                gived_up = 0
+                ignored = 0
+                waitDuration = 0
+                convDuration = 0
+                wrapUpDuration = 0
+                sl_dealed_calls = 0
+
+                for flow in check_flow:
+                    offered+= flow.offered_calls
+                    incoming+= flow.incoming_calls
+                    dealed+=flow.dealed_calls
+                    ivr+= flow.ivr
+                    gived_up+= flow.gived_up
+                    ignored+=flow.ignored
+                    waitDuration+= flow.wait_duration
+                    convDuration+= flow.conv_duration
+                    wrapUpDuration+= flow.wrapup_duration
+                    sl_dealed_calls+= flow.sl_dealed_calls
+                
+                days_kpi_duration = DayKpiDuration.objects.filter(
+                    process_date__range=(start_date, end_date),
+                    activity__name=data.get("activity")
+                    )
+                
+                waitDuration = 0
+                convDuration = 0
+                wrapUpDuration = 0
+
+                for day_kpi in days_kpi_duration:
+                    waitDuration+=day_kpi.waitDuration
+                    convDuration+=day_kpi.convDuration
+                    wrapUpDuration+=day_kpi.wrapUpDuration
+
+                
+                period_flow["offered_calls"] = offered
+                period_flow["incoming_calls"] = incoming
+                period_flow["dealed_calls"] = dealed
+                period_flow["ivr"] = ivr
+                period_flow["ignored"] = ignored
+                period_flow["gived_up"] = gived_up
+                period_flow['qs'] = ((period_flow["dealed_calls"]/(period_flow["incoming_calls"] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
+                period_flow['sl'] = round(((sl_dealed_calls/dealed) * 100), 1)
+                period_flow['dma'] = round(waitDuration/dealed)
+                period_flow['dmc'] = round(convDuration/dealed)
+                period_flow['dpt'] = round(wrapUpDuration/dealed)
+                period_flow['dmt'] = period_flow['dmc'] + period_flow['dpt']
+                # period_flow['sl'] = round()"""
+            activity = data.get("activity")
+            # cf_dict = unique_flow.__dict__
+            #print(period_flow)
+            # cf_dict.pop('_state')
+            cf_json = json.dumps(period_flow, default=str, indent=4)
+            """print(type(period_flow))
+            print(cf_json)
+            print(type(cf_json))"""
+            # print("Graph Json")
+            # print(graph_json)
+            # print("Dealed: {}".format(dealed))
+            # print("Sl dealed: {}".format(sl_dealed_calls))
+            return JsonResponse({"message":cf_json, "activity": activity, "graph_json": graph_json})
+            # return render(request, 'results.html', {'flow': check_flow})
+        
+        response_data = {'message': json.dumps({'result':'Données Inexistantes'})}
+        
+        return JsonResponse(response_data)
+        """form = FilterFlow(request.POST)
+        if form.is_valid():
+            data = process_data(form)
+            print("Data: {}".format(data))
+        return render(request, 'results.html', {'flow': data})"""
+    else:
+        form = FilterFlow()
+    return render(request, 'dashboard/index.html', {'form': form})
+
+
 
 def process_data(form):
     start_date = form.cleaned_data["start_date"]

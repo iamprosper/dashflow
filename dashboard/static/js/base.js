@@ -97,6 +97,8 @@ $(document).ready(function(){
                         console.log(response);
                         console.log(JSON.parse(response["message"]));
                         jsonResponse = JSON.parse(response["message"]);
+                        graphJson = JSON.parse(response["graph_json"]);
+                        // document.querySelector("#graph").innerHTML = '';
                         activity = response["activity"];
                         // console.log(activity);
                         fillKPIs(jsonResponse, activity);
@@ -107,24 +109,24 @@ $(document).ready(function(){
                     // url: '/process'
                 })
             }
-
+            
         }
         // if (code && cleared_dates.length != 0){
-        //     min_selected_date = cleared_dates[0];
-        //     if (cleared_dates.length = 1){
-        //         max_selected_date = cleared_dates[0];
-        //     }
-        //     else{
-        //         max_selected_date = cleared_dates[1]
-        //     }
-        //     console.log("--------Activity fully loaded-------");
+            //     min_selected_date = cleared_dates[0];
+            //     if (cleared_dates.length = 1){
+                //         max_selected_date = cleared_dates[0];
+                //     }
+                //     else{
+                    //         max_selected_date = cleared_dates[1]
+                    //     }
+                    //     console.log("--------Activity fully loaded-------");
         //     console.log(`Min date - ${min_selected_date}
         //     Max date - ${max_selected_date}
         //     `);
         //     console.log(cleared_dates);
         // }
     });
-
+    
     function getCookie(name){
         var cookieValue = null;
         if (document.cookie && document.cookie != ''){
@@ -139,7 +141,7 @@ $(document).ready(function(){
         }
         return cookieValue;
     }
-
+    
     function fillKPIs(response, activity){
         $("#dealed .nb").text(response["dealed_calls"]);
         $("#wait .nb").text(response["dma"]);
@@ -148,6 +150,7 @@ $(document).ready(function(){
         $("#com .nb").text(response["dmc"]);
         // $("#date").text(min_selected_date);
         $("#activity-name").text(activity);
+        Plotly.plot('graph', graphJson.data, graphJson.layout);
         // console.log(`Activity ${activity}`);
     }
 });

@@ -6,7 +6,7 @@ from . import views
 
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", views.index_r, name="index"),
     path("upload/", views.upload_file, name="upload"),
     path("success/", views.upload_success, name="success"),
     path("process/", views.process_file, name="process_file"),
@@ -15,5 +15,6 @@ urlpatterns = [
     path("fill/", views.fill_db, name='fill'),
     path('ws/fill', DataConsumer.as_asgi()),
     path('graph/', views.graph, name='graph'),
+    # path("dgraph", views.index_r, name="dgraph"),
     # path('real-process/', views.real_process_data, name='real-process'),
 ]
