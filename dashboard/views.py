@@ -17,7 +17,80 @@ from .models import DetailedFlow, DetailedFlowR, DetailedHour, DetailedMin, Flow
 from .forms import FileUploadForm, FilterFlow
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+import plotly.graph_objs as go
 
+def graph(request):
+    categories = ['7h - 00 min',
+                  '7h - 05 min',
+                  '7h - 10 min',
+                  '7h - 15 min',
+                  '7h - 20 min',
+                  '7h - 25 min',
+                  '7h - 30 min',
+                  '7h - 35 min',
+                  '7h - 40 min',
+                  '7h - 45 min',
+                  '7h - 50 min',
+                  '7h - 55 min',]
+    
+    ic_calls = 0
+    p_date = datetime.datetime.strptime("01/01/2024", "%d/%M/%Y")
+    dfm1_7 = DetailedFlowR.objects.filter(process_date=p_date, activity__name="Mobile", hour__hour_value=7)
+    ic_bar = []
+    dealed_bar = []
+    ivr_bar = []
+    ic_line = []
+    for df_1_7 in dfm1_7:
+        ic_calls += df_1_7.incoming_calls
+        ic_bar.append(df_1_7.incoming_calls)
+        dealed_bar.append(df_1_7.dealed_calls)
+        ic_line.append(df_1_7.sl_dealed_calls)
+        ivr_bar.append(df_1_7.ivr)
+    
+
+    ic_trace_bar = go.Bar(
+        x=categories,
+        y=ic_bar,
+        name="Ic Calls Chart"
+    )
+
+    dealed_trace_bar = go.Bar(
+        x=categories,
+        y=dealed_bar,
+        name="Dealed Calls Chart"
+    )
+
+    ivr_trace_bar = go.Bar(
+        x=categories,
+        y=ivr_bar,
+        name="Ivr Calls Chart"
+    )
+
+    sl_trace_line = go.Scatter(
+        x=categories,
+        y=ic_line,
+        mode='lines+markers',
+        name='Sl Chart'
+    )
+
+    data = [ic_trace_bar, dealed_trace_bar, ivr_trace_bar, sl_trace_line]
+
+    layout = go.Layout(
+        title='Graph incoming calls + SL',
+        xaxis=dict(title="Heures"),
+        yaxis=dict(title="Effectif")
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+
+    graph_json = fig.to_json()
+
+    context = {
+        'graph_json': graph_json
+    }
+
+    print("Ic_calls {}".format(ic_calls) )
+    return render(request, 'dashboard/graphs.html', context)
 # Create your views here.
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == "XMLHttpRequest"
@@ -134,7 +207,8 @@ def process_data(form):
 
 
 def fill_db(request):
-    load_inbound_per_5_min("media/uploads/2024-01.csv")
+    # load_inbound_per_5_min("media/uploads/2024-01.csv")
+    print("Data loaded")
     return render(request, 'dashboard/fill.html')
 
 def upload_file(request):

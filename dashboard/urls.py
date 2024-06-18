@@ -14,5 +14,6 @@ urlpatterns = [
     path("processd/", views.process_data, name="process_data"),
     path("fill/", views.fill_db, name='fill'),
     path('ws/fill', DataConsumer.as_asgi()),
+    path('graph/', views.graph, name='graph'),
     # path('real-process/', views.real_process_data, name='real-process'),
 ]
