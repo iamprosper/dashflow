@@ -414,52 +414,192 @@ def index_r(request):
                 20: 0
             }
             dma_dict = {
-                7: 0,
-                8: 0,
-                9: 0,
-                10: 0,
-                11: 0,
-                12: 0,
-                13: 0,
-                14: 0,
-                15: 0,
-                16: 0,
-                17: 0,
-                18: 0,
-                19: 0,
-                20: 0
+                7: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                8: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                9: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                10: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                11: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                12: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                13: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                14: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                15: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                16: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                17: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                18: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                19: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                },
+                20: {
+                    "waitDuration":0,
+                    "dealed": 0,
+                    "dma": 0
+                }
             }
             dmc_dict = {
-                7: 0,
-                8: 0,
-                9: 0,
-                10: 0,
-                11: 0,
-                12: 0,
-                13: 0,
-                14: 0,
-                15: 0,
-                16: 0,
-                17: 0,
-                18: 0,
-                19: 0,
-                20: 0
+                7: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                8: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                9: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                10: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                11: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                12: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                13: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                14: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                15: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                16: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                17: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                18: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                19: {
+                    "convDuration":0,
+                    "dmc": 0
+                },
+                20: {
+                    "convDuration":0,
+                    "dmc": 0
+                }
             }
             dpt_dict = {
-                7: 0,
-                8: 0,
-                9: 0,
-                10: 0,
-                11: 0,
-                12: 0,
-                13: 0,
-                14: 0,
-                15: 0,
-                16: 0,
-                17: 0,
-                18: 0,
-                19: 0,
-                20: 0
+                7: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                8: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                9: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                10: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                11: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                12: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                13: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                14: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                15: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                16: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                17: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                18: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                19: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                },
+                20: {
+                    "wrapUpDuration":0,
+                    "dpt": 0
+                }
             }
         if (check_flow):
             print(check_flow)
@@ -530,7 +670,12 @@ def index_r(request):
                         dl_dict[flow.hour.hour_value] += dl_var
                         ivr_dict[flow.hour.hour_value] += ivr_var
                         sl_dict[flow.hour.hour_value] += sl_var
-                        # dma_dict[]
+                        
+                        dma_dict[flow.hour.hour_value]["waitDuration"]+=wait_var
+                        dmc_dict[flow.hour.hour_value]["convDuration"]+=conv_var
+                        dpt_dict[flow.hour.hour_value]["wrapUpDuration"]+=wrap_var
+                        
+                        dma_dict[flow.hour.hour_value]["dealed"] += dl_var
                     ic_var = 0
                     dl_var = 0
                     ivr_var = 0
@@ -547,8 +692,20 @@ def index_r(request):
                 dl_bar = list(dl_dict.values())
                 ivr_bar = list(ivr_dict.values())
                 sl_line = list(sl_dict.values())
+                for hr in range(7, 21):
+                    wait_stat = dma_dict[hr]
+                    conv_stat = dmc_dict[hr]
+                    wrap_stat = dpt_dict[hr]
+                    if wait_stat["dealed"] != 0:
+                        dma_bar.append(round(wait_stat["waitDuration"]/wait_stat["dealed"]))
+                        dmc_bar.append(round(conv_stat["convDuration"]/wait_stat["dealed"]))
+                        dpt_bar.append(round(wrap_stat["wrapUpDuration"]/wait_stat["dealed"]))
+                    else:
+                        dma_bar.append(0)
+                        dmc_bar.append(0)
+                        dpt_bar.append(0)
             graph_json = graph(check_flow, ic_bar, dl_bar, ivr_bar, sl_line)
-            # dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar)
+            dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar)
             # period_flow["offered_calls"] = offered
             period_flow["incoming_calls"] = incoming
             period_flow["dealed_calls"] = dealed
@@ -642,7 +799,7 @@ def index_r(request):
                 "message":cf_json,
                 "activity": activity,
                 "graph_json": graph_json,
-                # "dm_graph_json": dm_graph_json
+                "dm_graph_json": dm_graph_json
                 })
             # return render(request, 'results.html', {'flow': check_flow})
         
