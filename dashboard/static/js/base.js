@@ -98,6 +98,7 @@ $(document).ready(function(){
                         console.log(JSON.parse(response["message"]));
                         jsonResponse = JSON.parse(response["message"]);
                         graphJson = JSON.parse(response["graph_json"]);
+                        dm_graph_json = JSON.parse(response["dm_graph_json"])
                         // document.querySelector("#graph").innerHTML = '';
                         activity = response["activity"];
                         // console.log(activity);
@@ -150,7 +151,10 @@ $(document).ready(function(){
         $("#com .nb").text(response["dmc"]);
         // $("#date").text(min_selected_date);
         $("#activity-name").text(activity);
-        Plotly.plot('graph', graphJson.data, graphJson.layout);
+        Plotly.purge('calls_and_sl');
+        Plotly.purge('dms');
+        Plotly.plot('calls_and_sl', graphJson.data, graphJson.layout);
+        Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
         // console.log(`Activity ${activity}`);
     }
 });

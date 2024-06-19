@@ -50,17 +50,32 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
                   "20h"]
     
     ic_calls = 0
+    dl_calls = 0
+    ivr_calls = 0
+    sl_dl_calls = 0
     p_date = datetime.datetime.strptime("01/01/2024", "%d/%M/%Y")
     # dfa_h = DetailedFlowR.objects.filter(process_date=p_date, activity__name=activity, hour__hour_value=hr)
     # dealed_bar = []
     # ivr_bar = []
     # ic_line = []
-    for dfa in activity:
+
+    """for dfa in activity:
         ic_calls += dfa.incoming_calls
-        ic_bar.append(dfa.incoming_calls)
-        dl_bar.append(dfa.dealed_calls)
-        sl_line.append(dfa.sl_dealed_calls)
-        ivr_bar.append(dfa.ivr)
+        dl_calls += dfa.dealed_calls
+        ivr_calls += dfa.ivr
+        sl_dl_calls += dfa.sl_dealed_calls
+        if dfa.mn.mn_value == 55:
+            ic_bar.append(ic_calls)
+            dl_bar.append(dl_calls)
+            sl_line.append(sl_dl_calls)
+            ivr_bar.append(ivr_calls)
+            print("Ic calls after dispatching {}".format(ic_calls))
+            ic_calls = 0
+            dl_calls = 0
+            sl_dl_calls = 0
+            ivr_calls = 0"""
+    
+    print(ic_bar)
     
 
     ic_trace_bar = go.Bar(
@@ -108,6 +123,105 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
     # return render(request, 'dashboard/graphs.html', context)
     # print(graph_json)
     return graph_json
+def dm_graph(activity, dma_bar, dmc_bar, dpt_bar):
+    hr = 7
+    categories_mins = [f"{hr}h - 00 min",
+                  f"{hr}h - 05 min",
+                  f"{hr}h - 10 min",
+                  f"{hr}h - 15 min",
+                  f"{hr}h - 20 min",
+                  f"{hr}h - 25 min",
+                  f"{hr}h - 30 min",
+                  f"{hr}h - 35 min",
+                  f"{hr}h - 40 min",
+                  f"{hr}h - 45 min",
+                  f"{hr}h - 50 min",
+                  f"{hr}h - 55 min"]
+    
+    categories_hours = ["7h",
+                  "8h",
+                  "9h",
+                  "10h",
+                  "11h",
+                  "12h",
+                  "13h",
+                  "14h",
+                  "15h",
+                  "16h",
+                  "17h",
+                  "18h",
+                  "19h",
+                  "20h"]
+    
+    ic_calls = 0
+    dl_calls = 0
+    ivr_calls = 0
+    sl_dl_calls = 0
+    p_date = datetime.datetime.strptime("01/01/2024", "%d/%M/%Y")
+    # dfa_h = DetailedFlowR.objects.filter(process_date=p_date, activity__name=activity, hour__hour_value=hr)
+    # dealed_bar = []
+    # ivr_bar = []
+    # ic_line = []
+
+    """for dfa in activity:
+        ic_calls += dfa.incoming_calls
+        dl_calls += dfa.dealed_calls
+        ivr_calls += dfa.ivr
+        sl_dl_calls += dfa.sl_dealed_calls
+        if dfa.mn.mn_value == 55:
+            ic_bar.append(ic_calls)
+            dl_bar.append(dl_calls)
+            sl_line.append(sl_dl_calls)
+            ivr_bar.append(ivr_calls)
+            print("Ic calls after dispatching {}".format(ic_calls))
+            ic_calls = 0
+            dl_calls = 0
+            sl_dl_calls = 0
+            ivr_calls = 0"""
+    
+    # print(ic_bar)
+    
+
+    dma_line = go.Scatter(
+        x=categories_hours,
+        y=dma_bar,
+        name="DMA Chart"
+    )
+
+    dmc_line = go.Scatter(
+        x=categories_hours,
+        y=dmc_bar,
+        name="DMC Chart"
+    )
+
+    dpt_line = go.Scatter(
+        x=categories_hours,
+        y=dpt_bar,
+        name="DPT Chart"
+    )
+
+
+    data = [dma_line, dmc_line, dpt_line]
+
+    layout = go.Layout(
+        title='Graph DMs',
+        xaxis=dict(title="Heures"),
+        yaxis=dict(title="Durées")
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+
+    dm_graph_json = fig.to_json()
+
+    # context = {
+    #     'graph_json': graph_json
+    # }
+
+    # print("Ic_calls {}".format(DMA) )
+    # return render(request, 'dashboard/graphs.html', context)
+    # print(graph_json)
+    return dm_graph_json
+
 # Create your views here.
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == "XMLHttpRequest"
@@ -247,6 +361,17 @@ def index_r(request):
             dl_bar = []
             ivr_bar = []
             sl_line = []
+            dma_bar = []
+            dmc_bar = []
+            dpt_bar = []
+            ic_var = 0
+            dl_var = 0
+            ivr_var = 0
+            sl_var = 0
+            conv_var = 0
+            wait_var = 0
+            wrap_var = 0
+
             """if len(check_flow) <= 168:
                 # period_flow = check_flow[0]
                 period_flow = period_flow.__dict__
@@ -256,30 +381,63 @@ def index_r(request):
                 period_flow.pop('wrapup_duration')"""
             for flow in check_flow:
                 incoming += flow.incoming_calls
+                ic_var += flow.incoming_calls
                 ivr += flow.ivr
-                ic_bar.append(flow.incoming_calls)
-                dl_bar.append(flow.dealed_calls)
-                sl_line.append(flow.sl_dealed_calls)
-                ivr_bar.append(flow.ivr)
+                ivr_var += flow.ivr
                 dealed += flow.dealed_calls
+                dl_var += flow.dealed_calls
+                sl_dealed_calls += flow.sl_dealed_calls
+                sl_var += flow.sl_dealed_calls
+                conv_var += flow.conv_duration
+                wait_var += flow.wait_duration
+                wrap_var += flow.wrapup_duration
+                if flow.mn.mn_value == 55:
+                    ic_bar.append(ic_var)
+                    dl_bar.append(dl_var)
+                    ivr_bar.append(ivr_var)
+                    sl_line.append(sl_var)
+                    if (dl_var != 0):
+                        dma_bar.append(round(wait_var/dl_var))
+                        dmc_bar.append(round(conv_var/dl_var))
+                        dpt_bar.append(round(wrap_var/dl_var))
+                    else:
+                        dma_bar.append(0)
+                        dmc_bar.append(0)
+                        dpt_bar.append(0)
+                    ic_var = 0
+                    dl_var = 0
+                    ivr_var = 0
+                    sl_var = 0
+                    wait_var = 0
+                    conv_var = 0
+                    wrap_var = 0
                 ignored += flow.ignored
                 waitDuration += flow.wait_duration
                 convDuration += flow.conv_duration
                 wrapUpDuration += flow.wrapup_duration
             
             graph_json = graph(check_flow, ic_bar, dl_bar, ivr_bar, sl_line)
+            dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar)
             # period_flow["offered_calls"] = offered
             period_flow["incoming_calls"] = incoming
             period_flow["dealed_calls"] = dealed
             period_flow["ivr"] = ivr
             period_flow["ignored"] = ignored
             # period_flow["gived_up"] = gived_up
-            period_flow['qs'] = ((period_flow["dealed_calls"]/(period_flow["incoming_calls"] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
-            period_flow['sl'] = round(((sl_dealed_calls/dealed) * 100), 1)
-            period_flow['dma'] = round(waitDuration/dealed)
-            period_flow['dmc'] = round(convDuration/dealed)
-            period_flow['dpt'] = round(wrapUpDuration/dealed)
-            period_flow['dmt'] = period_flow['dmc'] + period_flow['dpt']
+            if period_flow["dealed_calls"] != 0:
+                period_flow['qs'] = ((period_flow["dealed_calls"]/(period_flow["incoming_calls"] - period_flow['ignored'] - period_flow['ivr']))*100, 1)
+                period_flow['sl'] = round(((sl_dealed_calls/dealed) * 100), 1)
+                period_flow['dma'] = round(waitDuration/dealed)
+                period_flow['dmc'] = round(convDuration/dealed)
+                period_flow['dpt'] = round(wrapUpDuration/dealed)
+                period_flow['dmt'] = period_flow['dmc'] + period_flow['dpt']
+            else:
+                period_flow["qs"] = 0
+                period_flow['sl'] = 0
+                period_flow['dma'] = 0
+                period_flow['dmc'] = 0
+                period_flow['dpt'] = 0
+                period_flow['dmt'] = 0
             # period_flow['sl'] = round()
                     
 
@@ -349,7 +507,12 @@ def index_r(request):
             # print(graph_json)
             # print("Dealed: {}".format(dealed))
             # print("Sl dealed: {}".format(sl_dealed_calls))
-            return JsonResponse({"message":cf_json, "activity": activity, "graph_json": graph_json})
+            return JsonResponse({
+                "message":cf_json,
+                "activity": activity,
+                "graph_json": graph_json,
+                "dm_graph_json": dm_graph_json
+                })
             # return render(request, 'results.html', {'flow': check_flow})
         
         response_data = {'message': json.dumps({'result':'Données Inexistantes'})}
