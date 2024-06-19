@@ -344,8 +344,126 @@ def index_r(request):
                                             #    activity__code = data.get("code"),
                                                activity__name = data.get("activity"))
         # graph_json = ""
+        dl_dict = {}
+        sl_dict = {}
+        ivr_dict = {}
+        diff_date = end_date - start_date
+        if diff_date.days > 0:
+            dl_dict = {
+                7: 0,
+                8: 0,
+                9: 0,
+                10: 0,
+                11: 0,
+                12: 0,
+                13: 0,
+                14: 0,
+                15: 0,
+                16: 0,
+                17: 0,
+                18: 0,
+                19: 0,
+                20: 0
+            }
+            sl_dict = {
+                7: 0,
+                8: 0,
+                9: 0,
+                10: 0,
+                11: 0,
+                12: 0,
+                13: 0,
+                14: 0,
+                15: 0,
+                16: 0,
+                17: 0,
+                18: 0,
+                19: 0,
+                20: 0
+            }
+            ic_dict = {
+                7: 0,
+                8: 0,
+                9: 0,
+                10: 0,
+                11: 0,
+                12: 0,
+                13: 0,
+                14: 0,
+                15: 0,
+                16: 0,
+                17: 0,
+                18: 0,
+                19: 0,
+                20: 0
+            }
+            ivr_dict = {
+                7: 0,
+                8: 0,
+                9: 0,
+                10: 0,
+                11: 0,
+                12: 0,
+                13: 0,
+                14: 0,
+                15: 0,
+                16: 0,
+                17: 0,
+                18: 0,
+                19: 0,
+                20: 0
+            }
+            dma_dict = {
+                7: 0,
+                8: 0,
+                9: 0,
+                10: 0,
+                11: 0,
+                12: 0,
+                13: 0,
+                14: 0,
+                15: 0,
+                16: 0,
+                17: 0,
+                18: 0,
+                19: 0,
+                20: 0
+            }
+            dmc_dict = {
+                7: 0,
+                8: 0,
+                9: 0,
+                10: 0,
+                11: 0,
+                12: 0,
+                13: 0,
+                14: 0,
+                15: 0,
+                16: 0,
+                17: 0,
+                18: 0,
+                19: 0,
+                20: 0
+            }
+            dpt_dict = {
+                7: 0,
+                8: 0,
+                9: 0,
+                10: 0,
+                11: 0,
+                12: 0,
+                13: 0,
+                14: 0,
+                15: 0,
+                16: 0,
+                17: 0,
+                18: 0,
+                19: 0,
+                20: 0
+            }
         if (check_flow):
             print(check_flow)
+                
             period_flow = {}
             incoming = 0
             offered = 0
@@ -379,7 +497,9 @@ def index_r(request):
                 period_flow.pop('wait_duration')
                 period_flow.pop('conv_duration')
                 period_flow.pop('wrapup_duration')"""
+            # count_flow = 0
             for flow in check_flow:
+                # count_flow
                 incoming += flow.incoming_calls
                 ic_var += flow.incoming_calls
                 ivr += flow.ivr
@@ -392,18 +512,25 @@ def index_r(request):
                 wait_var += flow.wait_duration
                 wrap_var += flow.wrapup_duration
                 if flow.mn.mn_value == 55:
-                    ic_bar.append(ic_var)
-                    dl_bar.append(dl_var)
-                    ivr_bar.append(ivr_var)
-                    sl_line.append(sl_var)
-                    if (dl_var != 0):
-                        dma_bar.append(round(wait_var/dl_var))
-                        dmc_bar.append(round(conv_var/dl_var))
-                        dpt_bar.append(round(wrap_var/dl_var))
+                    if diff_date.days == 0:
+                        ic_bar.append(ic_var)
+                        dl_bar.append(dl_var)
+                        ivr_bar.append(ivr_var)
+                        sl_line.append(sl_var)
+                        if (dl_var != 0):
+                            dma_bar.append(round(wait_var/dl_var))
+                            dmc_bar.append(round(conv_var/dl_var))
+                            dpt_bar.append(round(wrap_var/dl_var))
+                        else:
+                            dma_bar.append(0)
+                            dmc_bar.append(0)
+                            dpt_bar.append(0)
                     else:
-                        dma_bar.append(0)
-                        dmc_bar.append(0)
-                        dpt_bar.append(0)
+                        ic_dict[flow.hour.hour_value] += ic_var
+                        dl_dict[flow.hour.hour_value] += dl_var
+                        ivr_dict[flow.hour.hour_value] += ivr_var
+                        sl_dict[flow.hour.hour_value] += sl_var
+                        # dma_dict[]
                     ic_var = 0
                     dl_var = 0
                     ivr_var = 0
@@ -415,9 +542,13 @@ def index_r(request):
                 waitDuration += flow.wait_duration
                 convDuration += flow.conv_duration
                 wrapUpDuration += flow.wrapup_duration
-            
+            if diff_date.days > 0:
+                ic_bar = list(ic_dict.values())
+                dl_bar = list(dl_dict.values())
+                ivr_bar = list(ivr_dict.values())
+                sl_line = list(sl_dict.values())
             graph_json = graph(check_flow, ic_bar, dl_bar, ivr_bar, sl_line)
-            dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar)
+            # dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar)
             # period_flow["offered_calls"] = offered
             period_flow["incoming_calls"] = incoming
             period_flow["dealed_calls"] = dealed
@@ -511,7 +642,7 @@ def index_r(request):
                 "message":cf_json,
                 "activity": activity,
                 "graph_json": graph_json,
-                "dm_graph_json": dm_graph_json
+                # "dm_graph_json": dm_graph_json
                 })
             # return render(request, 'results.html', {'flow': check_flow})
         
