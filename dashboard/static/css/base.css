@@ -212,3 +212,17 @@ nav ul li{
   form > *{
     margin-left: 20px;
   }
+
+  #graphs{
+    width: 100%;
+    /* display: flex; */
+    /* background-color: yellow !important; */
+  }
+
+  #distrib_form{
+    display: flex;
+    justify-content: space-between;
+    width: 75%;
+    /* background-color: gray; */
+    margin: auto;
+  }

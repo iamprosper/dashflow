@@ -15,6 +15,7 @@ urlpatterns = [
     path("fill/", views.fill_db, name='fill'),
     path('ws/fill', DataConsumer.as_asgi()),
     path('graph/', views.graph, name='graph'),
+    path('visualize/', views.visualize, name="visualize"),
     # path("dgraph", views.index_r, name="dgraph"),
     # path('real-process/', views.real_process_data, name='real-process'),
 ]

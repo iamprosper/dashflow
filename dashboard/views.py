@@ -19,9 +19,11 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import plotly.graph_objs as go
 
-def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
+global check_flow
+
+def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
     hr = 7
-    categories_hour = [f"{hr}h - 00 min",
+    categories_min_5 = [f"{hr}h - 00 min",
                   f"{hr}h - 05 min",
                   f"{hr}h - 10 min",
                   f"{hr}h - 15 min",
@@ -34,7 +36,7 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
                   f"{hr}h - 50 min",
                   f"{hr}h - 55 min"]
     
-    categories_day = ["7h",
+    categories_hour = ["7h",
                   "8h",
                   "9h",
                   "10h",
@@ -49,6 +51,21 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
                   "19h",
                   "20h"]
     
+    categories_day = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+    ]
+    
+    category = categories_hour
+    if distrib == 1:
+        category = categories_day
+    elif distrib == 5:
+        category = categories_min_5
     ic_calls = 0
     dl_calls = 0
     ivr_calls = 0
@@ -79,25 +96,25 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
     
 
     ic_trace_bar = go.Bar(
-        x=categories_day,
+        x=category,
         y=ic_bar,
         name="Ic Calls Chart"
     )
 
     dealed_trace_bar = go.Bar(
-        x=categories_day,
+        x=category,
         y=dl_bar,
         name="Dealed Calls Chart"
     )
 
     ivr_trace_bar = go.Bar(
-        x=categories_day,
+        x=category,
         y=ivr_bar,
         name="Ivr Calls Chart"
     )
 
     sl_trace_line = go.Scatter(
-        x=categories_day,
+        x=category,
         y=sl_line,
         mode='lines+markers',
         name='Sl Chart'
@@ -221,6 +238,44 @@ def dm_graph(activity, dma_bar, dmc_bar, dpt_bar):
     # return render(request, 'dashboard/graphs.html', context)
     # print(graph_json)
     return dm_graph_json
+
+@csrf_exempt
+def visualize(request):
+    if request.method == 'POST':
+        print("----Posted-----")
+        data_str = request.body.decode('utf-8')
+        data = json.loads(data_str)
+        distrib_value = data.get("code")
+        if check_flow:
+            incoming = 0
+            offered = 0
+            dealed = 0
+            ivr = 0
+            gived_up = 0
+            ignored = 0
+            waitDuration = 0
+            convDuration = 0
+            wrapUpDuration = 0
+            sl_dealed_calls = 0
+            ic_bar = []
+            dl_bar = []
+            ivr_bar = []
+            sl_line = []
+            dma_bar = []
+            dmc_bar = []
+            dpt_bar = []
+            ic_var = 0
+            dl_var = 0
+            ivr_var = 0
+            sl_var = 0
+            conv_var = 0
+            wait_var = 0
+            wrap_var = 0
+            if distrib_value == 5:
+                for df in check_flow:
+
+    # responseData = {}
+    return JsonResponse(responseData)
 
 # Create your views here.
 def is_ajax(request):
@@ -1603,3 +1658,4 @@ def load_inbound_per_5_min(file_path):
         #all_occurence += day_occurence
         #print("Day occurences - {}".format(day_occurence))
     #print("All month ocurrences {}".format(all_occurence))
+

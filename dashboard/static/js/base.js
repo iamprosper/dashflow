@@ -50,6 +50,12 @@ $(document).ready(function(){
     });*/
 
     $("#activity").click(getActivity);
+    $("#distrib").click(getDistrib);
+
+    function getDistrib(event){
+        distrib_value = event.target.value
+        // console.log(`Distrib : ${distrib_value}`);
+    }
     
     function getActivity(event){
         code = event.target.value;
@@ -57,8 +63,7 @@ $(document).ready(function(){
         console.log(`Activity : ${activity}`);
     }
     
-    $("button").click(function(event){
-        
+    $("#filter-btn").click(function(event){
         activity = $("#activity :selected").text();
         event.preventDefault();
         console.log(cleared_dates);
@@ -66,7 +71,7 @@ $(document).ready(function(){
         console.log(`Activité  - ${activity}`);
         console.log(`Code - ${code}`);
         min_selected_date = cleared_dates[0];
-
+        
         if (code && cleared_dates.length > 0){
             if(cleared_dates.length == 1){
                 max_selected_date = min_selected_date;
@@ -75,11 +80,11 @@ $(document).ready(function(){
             }
             
             console.log(`Min date - ${min_selected_date}
-            Max date - ${max_selected_date}`);
-            var inbound_ext_values = {
-                'code': code,
-                'activity': activity,
-                'start_date': min_selected_date,
+                Max date - ${max_selected_date}`);
+                var inbound_ext_values = {
+                    'code': code,
+                    'activity': activity,
+                    'start_date': min_selected_date,
                 'end_date': max_selected_date,
             }
             if (min_selected_date){
@@ -128,6 +133,32 @@ $(document).ready(function(){
         // }
     });
     
+    $("#view").click(function(event){
+        event.preventDefault();
+        distrib_text = $("#distrib :selected").text()
+        console.log(`Distrib text: ${distrib_text}`)
+        console.log(`Distrib : ${distrib_value}`);
+        if(distrib_value){
+            $.ajax({
+                type: 'POST',
+                url: '/dashboard/visualize/',
+                data: JSON.stringify({'code': distrib_value}),
+                contentType: 'application/json',
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                success: function(response){
+                    graphJson = JSON.parse(response["graph_json"])
+                    dmGraphJson = JSON.parse(response["dm_graph_json"])
+                    updateGraph(graphJson, dmGraphJson);
+                },
+                error: function(xhr, errmsg, err){
+                    console.log(`${xhr.status}: ${xhr.responseText}`);
+                }
+            })
+        }
+    });
+    
     function getCookie(name){
         var cookieValue = null;
         if (document.cookie && document.cookie != ''){
@@ -156,5 +187,12 @@ $(document).ready(function(){
         Plotly.plot('calls_and_sl', graphJson.data, graphJson.layout);
         Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
         // console.log(`Activity ${activity}`);
+    }
+
+    function updateGraph(graph_json, dm_graph_json){
+        Plotly.purge('calls_and_sl');
+        Plotly.purge('dms');
+        Plotly.plot('calls_and_sl', graph_json.data, graph_json.layout);
+        Plotly.plot('dms', dm_graph_json, graph_json.data, graph_json.layout);
     }
 });
