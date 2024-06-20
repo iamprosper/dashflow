@@ -21,7 +21,27 @@ import plotly.graph_objs as go
 
 global check_flow
 
-def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
+global ic_bar
+global dl_bar
+global ivr_bar
+
+global sl_line
+global dma_bar
+global dmc_bar
+global dpt_bar
+
+global ic_dict
+global dl_dict
+global ivr_dict
+global sl_dict
+
+global dma_dict
+global dmc_dict
+global dpt_dict
+
+global distrib
+
+def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
     hr = 7
     categories_min_5 = [f"{hr}h - 00 min",
                   f"{hr}h - 05 min",
@@ -61,11 +81,11 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
         "Sunday"
     ]
     
-    category = categories_hour
+    """category = categories_hour
     if distrib == 1:
         category = categories_day
     elif distrib == 5:
-        category = categories_min_5
+        category = categories_min_5"""
     ic_calls = 0
     dl_calls = 0
     ivr_calls = 0
@@ -96,25 +116,25 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
     
 
     ic_trace_bar = go.Bar(
-        x=category,
+        x=categories_hour,
         y=ic_bar,
         name="Ic Calls Chart"
     )
 
     dealed_trace_bar = go.Bar(
-        x=category,
+        x=categories_hour,
         y=dl_bar,
         name="Dealed Calls Chart"
     )
 
     ivr_trace_bar = go.Bar(
-        x=category,
+        x=categories_hour,
         y=ivr_bar,
         name="Ivr Calls Chart"
     )
 
     sl_trace_line = go.Scatter(
-        x=category,
+        x=categories_hour,
         y=sl_line,
         mode='lines+markers',
         name='Sl Chart'
@@ -239,44 +259,53 @@ def dm_graph(activity, dma_bar, dmc_bar, dpt_bar):
     # print(graph_json)
     return dm_graph_json
 
-@csrf_exempt
-def visualize(request):
-    if request.method == 'POST':
-        print("----Posted-----")
-        data_str = request.body.decode('utf-8')
-        data = json.loads(data_str)
-        distrib_value = data.get("code")
-        if check_flow:
-            incoming = 0
-            offered = 0
-            dealed = 0
-            ivr = 0
-            gived_up = 0
-            ignored = 0
-            waitDuration = 0
-            convDuration = 0
-            wrapUpDuration = 0
-            sl_dealed_calls = 0
-            ic_bar = []
-            dl_bar = []
-            ivr_bar = []
-            sl_line = []
-            dma_bar = []
-            dmc_bar = []
-            dpt_bar = []
-            ic_var = 0
-            dl_var = 0
-            ivr_var = 0
-            sl_var = 0
-            conv_var = 0
-            wait_var = 0
-            wrap_var = 0
-            if distrib_value == 5:
-                for df in check_flow:
 
-    # responseData = {}
+def visualize(flow,
+              distrib,
+              ic_var,
+              dl_var,
+              ivr_var,
+              sl_var,
+              wait_var,
+              conv_var,
+              wrap_var,
+              end_day):
+    if distrib == 1:
+        ic_bar.append(ic_var)
+        dl_bar.append(dl_var)
+        ivr_bar.append(ivr_var)
+        sl_line.append(sl_var)
+        if (dl_var != 0):
+            dma_bar.append(round(wait_var/dl_var))
+            dmc_bar.append(round(conv_var/dl_var))
+            dpt_bar.append(round(wrap_var/dl_var))
+        else:
+            dma_bar.append(0)
+            dmc_bar.append(0)
+            dpt_bar.append(0)
+    else:
+        ic_dict[flow.hour.hour_value] += ic_var
+        dl_dict[flow.hour.hour_value] += dl_var
+        ivr_dict[flow.hour.hour_value] += ivr_var
+        sl_dict[flow.hour.hour_value] += sl_var
+        
+        dma_dict[flow.hour.hour_value]["waitDuration"]+=wait_var
+        dmc_dict[flow.hour.hour_value]["convDuration"]+=conv_var
+        dpt_dict[flow.hour.hour_value]["wrapUpDuration"]+=wrap_var
+        
+        dma_dict[flow.hour.hour_value]["dealed"] += dl_var
+
+    responseData = {}
     return JsonResponse(responseData)
 
+# def update_graphs_visual(
+#        ic_bar,
+#        dl_bar,
+#        ivr_bar,
+#        sl_line,
+#        distrib
+# ):
+    
 # Create your views here.
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == "XMLHttpRequest"
@@ -403,6 +432,11 @@ def index_r(request):
         sl_dict = {}
         ivr_dict = {}
         diff_date = end_date - start_date
+        # distrib = 0
+        if diff_date.days > 0:
+            distrib = 2
+        else:
+            distrib = diff_date 
         if diff_date.days > 0:
             dl_dict = {
                 7: 0,
@@ -707,6 +741,17 @@ def index_r(request):
                 wait_var += flow.wait_duration
                 wrap_var += flow.wrapup_duration
                 if flow.mn.mn_value == 55:
+                    visualize(
+                        flow,
+                        distrib,
+                        ic_var,
+                        dl_var,
+                        ivr_var,
+                        sl_var,
+                        wait_var,
+                        conv_var,
+                        wrap_var
+                    )
                     if diff_date.days == 0:
                         ic_bar.append(ic_var)
                         dl_bar.append(dl_var)
