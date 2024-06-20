@@ -269,7 +269,7 @@ def visualize(flow,
               wait_var,
               conv_var,
               wrap_var,
-              end_day):
+              end_day: bool):
     if distrib == 1:
         ic_bar.append(ic_var)
         dl_bar.append(dl_var)
@@ -741,17 +741,18 @@ def index_r(request):
                 wait_var += flow.wait_duration
                 wrap_var += flow.wrapup_duration
                 if flow.mn.mn_value == 55:
-                    visualize(
-                        flow,
-                        distrib,
-                        ic_var,
-                        dl_var,
-                        ivr_var,
-                        sl_var,
-                        wait_var,
-                        conv_var,
-                        wrap_var
-                    )
+                    # visualize(
+                    #     flow,
+                    #     distrib,
+                    #     ic_var,
+                    #     dl_var,
+                    #     ivr_var,
+                    #     sl_var,
+                    #     wait_var,
+                    #     conv_var,
+                    #     wrap_var,
+                        
+                    # )
                     if diff_date.days == 0:
                         ic_bar.append(ic_var)
                         dl_bar.append(dl_var)
