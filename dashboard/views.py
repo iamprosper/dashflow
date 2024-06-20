@@ -396,7 +396,7 @@ def index(request):
             print(type(cf_json))
             # print("Dealed: {}".format(dealed))
             # print("Sl dealed: {}".format(sl_dealed_calls))
-            return JsonResponse({"message":cf_json, "activity": activity, "graph_json": graph_json})
+            return JsonResponse({"message":cf_json, "activity": activity})
             # return render(request, 'results.html', {'flow': check_flow})
         
         response_data = {'message': json.dumps({'result':'Données Inexistantes'})}
