@@ -41,6 +41,274 @@ global dpt_dict
 
 global distrib
 
+def reset_bars():
+    global dl_dict
+    dl_dict = {
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        12: 0,
+        13: 0,
+        14: 0,
+        15: 0,
+        16: 0,
+        17: 0,
+        18: 0,
+        19: 0,
+        20: 0
+    }
+    
+    global sl_dict
+    sl_dict = {
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        12: 0,
+        13: 0,
+        14: 0,
+        15: 0,
+        16: 0,
+        17: 0,
+        18: 0,
+        19: 0,
+        20: 0
+    }
+    
+    global ic_dict
+    ic_dict = {
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        12: 0,
+        13: 0,
+        14: 0,
+        15: 0,
+        16: 0,
+        17: 0,
+        18: 0,
+        19: 0,
+        20: 0
+    }
+    
+    global ivr_dict
+    ivr_dict = {
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+        11: 0,
+        12: 0,
+        13: 0,
+        14: 0,
+        15: 0,
+        16: 0,
+        17: 0,
+        18: 0,
+        19: 0,
+        20: 0
+    }
+    
+    global dma_dict
+    dma_dict = {
+        7: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        8: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        9: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        10: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        11: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        12: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        13: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        14: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        15: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        16: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        17: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        18: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        19: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        },
+        20: {
+            "waitDuration":0,
+            "dealed": 0,
+            "dma": 0
+        }
+    }
+    
+    global dmc_dict
+    dmc_dict = {
+        7: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        8: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        9: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        10: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        11: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        12: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        13: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        14: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        15: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        16: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        17: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        18: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        19: {
+            "convDuration":0,
+            "dmc": 0
+        },
+        20: {
+            "convDuration":0,
+            "dmc": 0
+        }
+    }
+    
+    global dpt_dict
+    dpt_dict = {
+        7: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        8: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        9: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        10: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        11: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        12: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        13: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        14: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        15: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        16: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        17: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        18: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        19: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        },
+        20: {
+            "wrapUpDuration":0,
+            "dpt": 0
+        }
+    }
+    
+
 def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
     hr = 7
     categories_min_5 = [f"{hr}h - 00 min",
@@ -298,13 +566,13 @@ def visualize(flow,
     responseData = {}
     return JsonResponse(responseData)
 
-# def update_graphs_visual(
-#        ic_bar,
-#        dl_bar,
-#        ivr_bar,
-#        sl_line,
-#        distrib
-# ):
+def update_graphs_visual(request):
+    if request.method == 'POST':
+        print("------Visualising-------")
+        data_str = request.body.decode('utf-8')
+        data = json.loads(data_str)
+        time_view = (int) (data.get("code"))
+        visualize(check_flow, time_view)
     
 # Create your views here.
 def is_ajax(request):
@@ -428,9 +696,14 @@ def index_r(request):
                                             #    activity__code = data.get("code"),
                                                activity__name = data.get("activity"))
         # graph_json = ""
-        dl_dict = {}
-        sl_dict = {}
-        ivr_dict = {}
+        # dl_dict = {}
+        # sl_dict = {}
+        # ivr_dict = {}
+        # 
+        # global dl_dict
+        # global sl_dict
+        # global ivr_dict
+        # global ic_dict
         diff_date = end_date - start_date
         # distrib = 0
         if diff_date.days > 0:
@@ -438,6 +711,8 @@ def index_r(request):
         else:
             distrib = diff_date 
         if diff_date.days > 0:
+            reset_bars()
+            """# When we have many days, we have to collect calls by bours (for dms calcultations)
             dl_dict = {
                 7: 0,
                 8: 0,
@@ -690,9 +965,10 @@ def index_r(request):
                     "dpt": 0
                 }
             }
+            """
         if (check_flow):
             print(check_flow)
-                
+
             period_flow = {}
             incoming = 0
             offered = 0

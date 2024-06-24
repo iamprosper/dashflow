@@ -193,6 +193,7 @@ $(document).ready(function(){
         Plotly.purge('calls_and_sl');
         Plotly.purge('dms');
         Plotly.plot('calls_and_sl', graph_json.data, graph_json.layout);
-        Plotly.plot('dms', dm_graph_json, graph_json.data, graph_json.layout);
+        Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
+        // Plotly.plot('dms', dm_graph_json, graph_json.data, graph_json.layout);
     }
 });
