@@ -59,8 +59,10 @@ $(document).ready(function(){
     
     function getActivity(event){
         code = event.target.value;
+        distrib_value = $("#distrib").val()
         console.log(`Code : ${code}`);
         console.log(`Activity : ${activity}`);
+        console.log(`Distrib code: ${distrib_value}`)
     }
     
     $("#filter-btn").click(function(event){
@@ -85,7 +87,8 @@ $(document).ready(function(){
                     'code': code,
                     'activity': activity,
                     'start_date': min_selected_date,
-                'end_date': max_selected_date,
+                    'end_date': max_selected_date,
+                    'time_interval': distrib_value
             }
             if (min_selected_date){
                 // alert(min_selected_date)
