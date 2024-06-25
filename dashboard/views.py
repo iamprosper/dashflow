@@ -23,35 +23,7 @@ import plotly.graph_objs as go
 # global check_flow
 global diff_date
 
-# global ic_var
-# global dl_var
-# global ivr_var
-# global sl_var
-
-# global wait_var
-# global conv_var
-# global wrap_var
-
-# # global ic_bar
-# # global dl_bar
-# # global ivr_bar
-
-# global sl_line
-# global dma_bar
-# global dmc_bar
-# global dpt_bar
-
-# global ic_dict
-# global dl_dict
-# global ivr_dict
-# global sl_dict
-
-# global dma_dict
-# global dmc_dict
-# global dpt_dict
-# global categories_day
-# global distrib
-
+#Initializing bars for graph visualization
 def reset_bars():
     global dl_dict
     dl_dict = {
@@ -416,8 +388,7 @@ def reset_bars():
 
     reset_vars()
 
-
-
+#Reseting vars for kpi computing
 def reset_vars():
     global ic_var
     ic_var = 0
@@ -440,10 +411,11 @@ def reset_vars():
     global wrap_var
     wrap_var = 0
 
-
-
+#Graph visualisation for Calls and Sl
 def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
+    #Default time for 5 min review
     hr = 7
+
     categories_min_5 = [f"{hr}h - 00 min",
                   f"{hr}h - 05 min",
                   f"{hr}h - 10 min",
@@ -481,50 +453,21 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
         "Saturday",
         "Sunday"
     ]
-    for day in day_bar.keys():
-        if (day_bar[day]["dealed"] == 0):
-            categories_day.remove(day)
+    
     if distrib == 60:
         category = categories_hour
     elif distrib == 5:
         category = categories_min_5
     else:
+        # Clear unnecessaries days for day visualization
+        for day in day_bar.keys():
+            if (day_bar[day]["dealed"] == 0):
+                categories_day.remove(day)
         category = categories_day
-    
-    """category = categories_hour
-    if distrib == 1:
-        category = categories_day
-    elif distrib == 5:
-        category = categories_min_5"""
-    ic_calls = 0
-    dl_calls = 0
-    ivr_calls = 0
-    sl_dl_calls = 0
-    p_date = datetime.datetime.strptime("01/01/2024", "%d/%M/%Y")
-    # dfa_h = DetailedFlowR.objects.filter(process_date=p_date, activity__name=activity, hour__hour_value=hr)
-    # dealed_bar = []
-    # ivr_bar = []
-    # ic_line = []
-
-    """for dfa in activity:
-        ic_calls += dfa.incoming_calls
-        dl_calls += dfa.dealed_calls
-        ivr_calls += dfa.ivr
-        sl_dl_calls += dfa.sl_dealed_calls
-        if dfa.mn.mn_value == 55:
-            ic_bar.append(ic_calls)
-            dl_bar.append(dl_calls)
-            sl_line.append(sl_dl_calls)
-            ivr_bar.append(ivr_calls)
-            print("Ic calls after dispatching {}".format(ic_calls))
-            ic_calls = 0
-            dl_calls = 0
-            sl_dl_calls = 0
-            ivr_calls = 0"""
     
     print(ic_bar)
     
-
+    #Defining calls charts
     ic_trace_bar = go.Bar(
         x=category,
         y=ic_bar,
@@ -547,7 +490,7 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
         x=category,
         y=sl_line,
         mode='lines+markers',
-        name='Sl Chart'
+        name='Sl Line'
     )
 
     data = [ic_trace_bar, dealed_trace_bar, ivr_trace_bar, sl_trace_line]
@@ -566,13 +509,14 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
     #     'graph_json': graph_json
     # }
 
-    print("Ic_calls {}".format(ic_calls) )
     # return render(request, 'dashboard/graphs.html', context)
     # print(graph_json)
     return graph_json
+
+#Graph visualisation for dms
 def dm_graph(activity, dma_bar, dmc_bar, dpt_bar):
     hr = 7
-    categories_mins = [f"{hr}h - 00 min",
+    categories_min_5 = [f"{hr}h - 00 min",
                   f"{hr}h - 05 min",
                   f"{hr}h - 10 min",
                   f"{hr}h - 15 min",
@@ -600,35 +544,27 @@ def dm_graph(activity, dma_bar, dmc_bar, dpt_bar):
                   "19h",
                   "20h"]
     
-    ic_calls = 0
-    dl_calls = 0
-    ivr_calls = 0
-    sl_dl_calls = 0
-    p_date = datetime.datetime.strptime("01/01/2024", "%d/%M/%Y")
-    # dfa_h = DetailedFlowR.objects.filter(process_date=p_date, activity__name=activity, hour__hour_value=hr)
-    # dealed_bar = []
-    # ivr_bar = []
-    # ic_line = []
+    categories_day = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+    ]
 
-    """for dfa in activity:
-        ic_calls += dfa.incoming_calls
-        dl_calls += dfa.dealed_calls
-        ivr_calls += dfa.ivr
-        sl_dl_calls += dfa.sl_dealed_calls
-        if dfa.mn.mn_value == 55:
-            ic_bar.append(ic_calls)
-            dl_bar.append(dl_calls)
-            sl_line.append(sl_dl_calls)
-            ivr_bar.append(ivr_calls)
-            print("Ic calls after dispatching {}".format(ic_calls))
-            ic_calls = 0
-            dl_calls = 0
-            sl_dl_calls = 0
-            ivr_calls = 0"""
+    if distrib == 60:
+        category = categories_hours
+    elif distrib == 5:
+        category = categories_min_5
+    else:
+        #Clear unnecessaries days for day visualization
+        for day in day_bar.keys():
+            if(day_bar[day]["dealed"] == 0):
+                categories_day.remove(day)
     
-    # print(ic_bar)
-    
-
+    #Defining dms charts
     dma_line = go.Scatter(
         x=categories_hours,
         y=dma_bar,
