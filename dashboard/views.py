@@ -49,7 +49,7 @@ global diff_date
 # global dma_dict
 # global dmc_dict
 # global dpt_dict
-
+# global categories_day
 # global distrib
 
 def reset_bars():
@@ -319,6 +319,80 @@ def reset_bars():
         }
     }
     
+    global day_bar
+    day_bar = {
+        "Monday": {
+            "incoming": 0,
+            "dealed": 0,
+            "sl_dealed_calls": 0,
+            "ivr": 0,
+            "waitDuration": 0,
+            "convDuration": 0,
+            "wrapUpDuration": 0,
+            # "dma": 0
+        },
+        "Tuesday": {
+            "incoming": 0,
+            "dealed": 0,
+            "sl_dealed_calls": 0,
+            "ivr": 0,
+            "waitDuration": 0,
+            "convDuration": 0,
+            "wrapUpDuration": 0,
+            # "dma": 0
+        },
+        "Wednesday": {
+            "incoming": 0,
+            "dealed": 0,
+            "sl_dealed_calls": 0,
+            "ivr": 0,
+            "waitDuration": 0,
+            "convDuration": 0,
+            "wrapUpDuration": 0,
+            # "dma": 0
+        },
+        "Thursday": {
+            "incoming": 0,
+            "dealed": 0,
+            "sl_dealed_calls": 0,
+            "ivr": 0,
+            "waitDuration": 0,
+            "convDuration": 0,
+            "wrapUpDuration": 0,
+            # "dma": 0
+        },
+        "Friday": {
+            "incoming": 0,
+            "dealed": 0,
+            "sl_dealed_calls": 0,
+            "ivr": 0,
+            "waitDuration": 0,
+            "convDuration": 0,
+            "wrapUpDuration": 0,
+            # "dma": 0
+        },
+        "Saturday": {
+            "incoming": 0,
+            "dealed": 0,
+            "sl_dealed_calls": 0,
+            "ivr": 0,
+            "waitDuration": 0,
+            "convDuration": 0,
+            "wrapUpDuration": 0,
+            # "dma": 0
+        },
+        "Sunday": {
+            "incoming": 0,
+            "dealed": 0,
+            "sl_dealed_calls": 0,
+            "ivr": 0,
+            "waitDuration": 0,
+            "convDuration": 0,
+            "wrapUpDuration": 0,
+            # "dma": 0
+        },
+    }
+
     global ic_bar
     ic_bar = []
 
@@ -340,6 +414,11 @@ def reset_bars():
     global dpt_bar
     dpt_bar = []
 
+    reset_vars()
+
+
+
+def reset_vars():
     global ic_var
     ic_var = 0
 
@@ -362,7 +441,8 @@ def reset_bars():
     wrap_var = 0
 
 
-def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
+
+def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
     hr = 7
     categories_min_5 = [f"{hr}h - 00 min",
                   f"{hr}h - 05 min",
@@ -401,6 +481,15 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
         "Saturday",
         "Sunday"
     ]
+    for day in day_bar.keys():
+        if (day_bar[day]["dealed"] == 0):
+            categories_day.remove(day)
+    if distrib == 60:
+        category = categories_hour
+    elif distrib == 5:
+        category = categories_min_5
+    else:
+        category = categories_day
     
     """category = categories_hour
     if distrib == 1:
@@ -437,25 +526,25 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line):
     
 
     ic_trace_bar = go.Bar(
-        x=categories_hour,
+        x=category,
         y=ic_bar,
         name="Ic Calls Chart"
     )
 
     dealed_trace_bar = go.Bar(
-        x=categories_hour,
+        x=category,
         y=dl_bar,
         name="Dealed Calls Chart"
     )
 
     ivr_trace_bar = go.Bar(
-        x=categories_hour,
+        x=category,
         y=ivr_bar,
         name="Ivr Calls Chart"
     )
 
     sl_trace_line = go.Scatter(
-        x=categories_hour,
+        x=category,
         y=sl_line,
         mode='lines+markers',
         name='Sl Chart'
@@ -758,6 +847,8 @@ def index_r(request):
     if request.method == 'POST':
         global diff_date
         global distrib
+        global categories_day
+        categories_day = []
         print("---------Posted--------")
         data_str = request.body.decode('utf-8')
         data = json.loads(data_str)
@@ -783,6 +874,7 @@ def index_r(request):
         # global ivr_dict
         # global ic_dict
         diff_date = end_date - start_date
+        print("Distrib {} \n Diff date {}".format(distrib, diff_date.days))
         # distrib = 0
         # if diff_date.days > 0:
         #     distrib = 2
@@ -790,7 +882,7 @@ def index_r(request):
         #     distrib = diff_date 
         # if diff_date.days > 0:
         
-        # When we have many days, we have to collect calls by bours (for dms calcultations)
+        """# When we have many days, we have to collect calls by bours (for dms calcultations)
         dl_dict = {
             7: 0,
             8: 0,
@@ -1043,11 +1135,11 @@ def index_r(request):
                 "dpt": 0
             }
         }
-        
+        """
     
-        # reset_bars()
+        reset_bars()
         if (check_flow):
-            print(check_flow)
+            # print(check_flow)
 
             period_flow = {}
             incoming = 0
@@ -1075,6 +1167,14 @@ def index_r(request):
             wait_var = 0
             wrap_var = 0
 
+            ic_5_var = 0
+            dl_5_var = 0
+            ivr_5_var = 0
+            sl_5_var = 0
+            conv_5_var = 0
+            wrap_5_var = 0
+            wait_5_var = 0
+
             """if len(check_flow) <= 168:
                 # period_flow = check_flow[0]
                 period_flow = period_flow.__dict__
@@ -1096,7 +1196,31 @@ def index_r(request):
                 conv_var += flow.conv_duration
                 wait_var += flow.wait_duration
                 wrap_var += flow.wrapup_duration
-                if flow.mn.mn_value == 55:
+
+                ic_5_var = flow.incoming_calls
+                dl_5_var = flow.dealed_calls
+                ivr_5_var = flow.ivr
+                sl_5_var = flow.sl_dealed_calls
+                wait_5_var = flow.wait_duration
+                wrap_5_var = flow.wrapup_duration
+                conv_5_var = flow.conv_duration
+                
+                if diff_date.days == 0 and distrib == 5 and flow.hour.hour_value == 7:
+                    ic_bar.append(ic_5_var)
+                    dl_bar.append(dl_5_var)
+                    ivr_bar.append(ivr_5_var)
+                    sl_line.append(sl_5_var)
+                    if (dl_5_var != 0):
+                        dma_bar.append(round(wait_5_var/dl_5_var))
+                        dmc_bar.append(round(conv_5_var/dl_5_var))
+                        dpt_bar.append(round(wrap_5_var/dl_5_var))
+                    else:
+                        dma_bar.append(0)
+                        dmc_bar.append(0)
+                        dpt_bar.append(0)
+                    print("------------------5min----------------")
+
+                elif flow.mn.mn_value == 55:
                     # visualize(
                     #     flow,
                     #     distrib,
@@ -1110,7 +1234,7 @@ def index_r(request):
                         
                     # )
                     # compute_graph_data(diff_date, distrib, flow.hour.hour_value)
-                    if diff_date.days == 0:
+                    if diff_date.days == 0 and distrib == 60:
                         ic_bar.append(ic_var)
                         dl_bar.append(dl_var)
                         ivr_bar.append(ivr_var)
@@ -1124,16 +1248,29 @@ def index_r(request):
                             dmc_bar.append(0)
                             dpt_bar.append(0)
                     else:
-                        ic_dict[flow.hour.hour_value] += ic_var
-                        dl_dict[flow.hour.hour_value] += dl_var
-                        ivr_dict[flow.hour.hour_value] += ivr_var
-                        sl_dict[flow.hour.hour_value] += sl_var
-                        
-                        dma_dict[flow.hour.hour_value]["waitDuration"]+=wait_var
-                        dmc_dict[flow.hour.hour_value]["convDuration"]+=conv_var
-                        dpt_dict[flow.hour.hour_value]["wrapUpDuration"]+=wrap_var
-                        
-                        dma_dict[flow.hour.hour_value]["dealed"] += dl_var
+                        if distrib == 60:
+                            ic_dict[flow.hour.hour_value] += ic_var
+                            dl_dict[flow.hour.hour_value] += dl_var
+                            ivr_dict[flow.hour.hour_value] += ivr_var
+                            sl_dict[flow.hour.hour_value] += sl_var
+                            
+                            dma_dict[flow.hour.hour_value]["waitDuration"]+=wait_var
+                            dmc_dict[flow.hour.hour_value]["convDuration"]+=conv_var
+                            dpt_dict[flow.hour.hour_value]["wrapUpDuration"]+=wrap_var
+                            
+                            dma_dict[flow.hour.hour_value]["dealed"] += dl_var
+                        else:
+                            day_str = flow.process_date.strftime("%A")
+                            day_bar[day_str]["incoming"] += ic_var
+                            day_bar[day_str]["dealed"] += dl_var
+                            day_bar[day_str]["ivr"] += ivr_var
+                            day_bar[day_str]["sl_dealed_calls"] += sl_var
+
+                            day_bar[day_str]["waitDuration"] += wait_var
+                            day_bar[day_str]["convDuration"] += conv_var
+                            day_bar[day_str]["wrapUpDuration"] += wrap_var
+
+                            # print()
                     ic_var = 0
                     dl_var = 0
                     ivr_var = 0
@@ -1141,29 +1278,56 @@ def index_r(request):
                     wait_var = 0
                     conv_var = 0
                     wrap_var = 0
+                # if day_bar[day_str]["dealed"] != 0:
+                #     categories_day.append(day_str)
+                #     print(categories_day)
+                
                 ignored += flow.ignored
                 waitDuration += flow.wait_duration
                 convDuration += flow.conv_duration
                 wrapUpDuration += flow.wrapup_duration
             if diff_date.days > 0:
-                ic_bar = list(ic_dict.values())
-                dl_bar = list(dl_dict.values())
-                ivr_bar = list(ivr_dict.values())
-                sl_line = list(sl_dict.values())
-                for hr in range(7, 21):
-                    wait_stat = dma_dict[hr]
-                    conv_stat = dmc_dict[hr]
-                    wrap_stat = dpt_dict[hr]
-                    if wait_stat["dealed"] != 0:
-                        dma_bar.append(round(wait_stat["waitDuration"]/wait_stat["dealed"]))
-                        dmc_bar.append(round(conv_stat["convDuration"]/wait_stat["dealed"]))
-                        dpt_bar.append(round(wrap_stat["wrapUpDuration"]/wait_stat["dealed"]))
-                    else:
-                        dma_bar.append(0)
-                        dmc_bar.append(0)
-                        dpt_bar.append(0)
-            graph_json = graph(check_flow, ic_bar, dl_bar, ivr_bar, sl_line)
-            dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar)
+                if distrib == 60:
+                    ic_bar = list(ic_dict.values())
+                    dl_bar = list(dl_dict.values())
+                    ivr_bar = list(ivr_dict.values())
+                    sl_line = list(sl_dict.values())
+                    for hr in range(7, 21):
+                        wait_stat = dma_dict[hr]
+                        conv_stat = dmc_dict[hr]
+                        wrap_stat = dpt_dict[hr]
+                        if wait_stat["dealed"] != 0:
+                            dma_bar.append(round(wait_stat["waitDuration"]/wait_stat["dealed"]))
+                            dmc_bar.append(round(conv_stat["convDuration"]/wait_stat["dealed"]))
+                            dpt_bar.append(round(wrap_stat["wrapUpDuration"]/wait_stat["dealed"]))
+                        else:
+                            dma_bar.append(0)
+                            dmc_bar.append(0)
+                            dpt_bar.append(0)
+                elif distrib == 1:
+                    ic_bar = [dict_val["incoming"] for dict_val in list(day_bar.values())]
+                    dl_bar = [dict_val["dealed"] for dict_val in list(day_bar.values())]
+                    ivr_bar = [dict_val["ivr"] for dict_val in list(day_bar.values())]
+                    sl_line = [dict_val["sl_dealed_calls"] for dict_val in list(day_bar.values())]
+
+                    for day in day_bar.keys():
+                        if day_bar[day]["dealed"] != 0:
+                            dayWaitDuration = day_bar[day]["waitDuration"]
+                            dayConvDuration = day_bar[day]["convDuration"]
+                            dayWrapUpDuration = day_bar[day]["wrapUpDuration"]
+                            dayDealed = day_bar[day]["dealed"]
+                            dma_bar.append(round(dayWaitDuration/dayDealed))
+                            dmc_bar.append(round(dayConvDuration/dayDealed))
+                            dpt_bar.append(round(dayWrapUpDuration/dayDealed))
+                        else:
+                            dma_bar.append(0)
+                            dmc_bar.append(0)
+                            dpt_bar.append(0)
+            
+            print(day_bar)
+
+            graph_json = graph(check_flow, ic_bar, dl_bar, ivr_bar, sl_line, distrib)
+            # dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar)
             # period_flow["offered_calls"] = offered
             period_flow["incoming_calls"] = incoming
             period_flow["dealed_calls"] = dealed
@@ -1257,7 +1421,7 @@ def index_r(request):
                 "message":cf_json,
                 "activity": activity,
                 "graph_json": graph_json,
-                "dm_graph_json": dm_graph_json
+                # "dm_graph_json": dm_graph_json
                 })
             # return render(request, 'results.html', {'flow': check_flow})
         

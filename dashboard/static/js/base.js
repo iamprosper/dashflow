@@ -67,6 +67,7 @@ $(document).ready(function(){
     
     $("#filter-btn").click(function(event){
         activity = $("#activity :selected").text();
+        distrib_value = $("#distrib").val()
         event.preventDefault();
         console.log(cleared_dates);
         // console.log(dd);
@@ -106,7 +107,7 @@ $(document).ready(function(){
                         console.log(JSON.parse(response["message"]));
                         jsonResponse = JSON.parse(response["message"]);
                         graphJson = JSON.parse(response["graph_json"]);
-                        dm_graph_json = JSON.parse(response["dm_graph_json"])
+                        // dm_graph_json = JSON.parse(response["dm_graph_json"])
                         // document.querySelector("#graph").innerHTML = '';
                         activity = response["activity"];
                         // console.log(activity);
@@ -186,9 +187,9 @@ $(document).ready(function(){
         // $("#date").text(min_selected_date);
         $("#activity-name").text(activity);
         Plotly.purge('calls_and_sl');
-        Plotly.purge('dms');
+        // Plotly.purge('dms');
         Plotly.plot('calls_and_sl', graphJson.data, graphJson.layout);
-        Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
+        // Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
         // console.log(`Activity ${activity}`);
     }
 
@@ -196,7 +197,7 @@ $(document).ready(function(){
         Plotly.purge('calls_and_sl');
         Plotly.purge('dms');
         Plotly.plot('calls_and_sl', graph_json.data, graph_json.layout);
-        Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
+        // Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
         // Plotly.plot('dms', dm_graph_json, graph_json.data, graph_json.layout);
     }
 });
