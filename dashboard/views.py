@@ -20,6 +20,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import plotly.graph_objs as go
 
+
 # global check_flow
 global diff_date
 
@@ -412,22 +413,22 @@ def reset_vars():
     wrap_var = 0
 
 #Graph visualisation for Calls and Sl
-def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
+def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib, hour_value=7):
     #Default time for 5 min review
-    hr = 7
+    # hr = 7
 
-    categories_min_5 = [f"{hr}h - 00 min",
-                  f"{hr}h - 05 min",
-                  f"{hr}h - 10 min",
-                  f"{hr}h - 15 min",
-                  f"{hr}h - 20 min",
-                  f"{hr}h - 25 min",
-                  f"{hr}h - 30 min",
-                  f"{hr}h - 35 min",
-                  f"{hr}h - 40 min",
-                  f"{hr}h - 45 min",
-                  f"{hr}h - 50 min",
-                  f"{hr}h - 55 min"]
+    categories_min_5 = [f"{hour_value}h - 00 min",
+                  f"{hour_value}h - 05 min",
+                  f"{hour_value}h - 10 min",
+                  f"{hour_value}h - 15 min",
+                  f"{hour_value}h - 20 min",
+                  f"{hour_value}h - 25 min",
+                  f"{hour_value}h - 30 min",
+                  f"{hour_value}h - 35 min",
+                  f"{hour_value}h - 40 min",
+                  f"{hour_value}h - 45 min",
+                  f"{hour_value}h - 50 min",
+                  f"{hour_value}h - 55 min"]
     
     categories_hour = ["7h",
                   "8h",
@@ -514,20 +515,20 @@ def graph(activity, ic_bar, dl_bar, ivr_bar, sl_line, distrib):
     return graph_json
 
 #Graph visualisation for dms
-def dm_graph(activity, dma_bar, dmc_bar, dpt_bar):
-    hr = 7
-    categories_min_5 = [f"{hr}h - 00 min",
-                  f"{hr}h - 05 min",
-                  f"{hr}h - 10 min",
-                  f"{hr}h - 15 min",
-                  f"{hr}h - 20 min",
-                  f"{hr}h - 25 min",
-                  f"{hr}h - 30 min",
-                  f"{hr}h - 35 min",
-                  f"{hr}h - 40 min",
-                  f"{hr}h - 45 min",
-                  f"{hr}h - 50 min",
-                  f"{hr}h - 55 min"]
+def dm_graph(activity, dma_bar, dmc_bar, dpt_bar, distrib, hour_value=7):
+    # hr = 7
+    categories_min_5 = [f"{hour_value}h - 00 min",
+                  f"{hour_value}h - 05 min",
+                  f"{hour_value}h - 10 min",
+                  f"{hour_value}h - 15 min",
+                  f"{hour_value}h - 20 min",
+                  f"{hour_value}h - 25 min",
+                  f"{hour_value}h - 30 min",
+                  f"{hour_value}h - 35 min",
+                  f"{hour_value}h - 40 min",
+                  f"{hour_value}h - 45 min",
+                  f"{hour_value}h - 50 min",
+                  f"{hour_value}h - 55 min"]
     
     categories_hours = ["7h",
                   "8h",
@@ -563,22 +564,24 @@ def dm_graph(activity, dma_bar, dmc_bar, dpt_bar):
         for day in day_bar.keys():
             if(day_bar[day]["dealed"] == 0):
                 categories_day.remove(day)
+        
+        category = categories_day
     
     #Defining dms charts
     dma_line = go.Scatter(
-        x=categories_hours,
+        x=category,
         y=dma_bar,
         name="DMA Chart"
     )
 
     dmc_line = go.Scatter(
-        x=categories_hours,
+        x=category,
         y=dmc_bar,
         name="DMC Chart"
     )
 
     dpt_line = go.Scatter(
-        x=categories_hours,
+        x=category,
         y=dpt_bar,
         name="DPT Chart"
     )
@@ -784,6 +787,7 @@ def index_r(request):
         global diff_date
         global distrib
         global categories_day
+        global hour_value
         categories_day = []
         print("---------Posted--------")
         data_str = request.body.decode('utf-8')
@@ -795,6 +799,7 @@ def index_r(request):
                                             #    activity__code = data.get("code"),
                                                activity__name = data.get("activity"))"""
         distrib = (int)(data.get("time_interval"))
+        hour_value = (int)(data.get("hour_value"))
         check_flow = DetailedFlowR.objects.filter(process_date__range=(start_date, end_date),
                                             #    end_date = datetime.datetime.strptime(data.get("end_date"), "%d/%m/%Y"),
                                             #    activity__code = data.get("code"),
@@ -1103,13 +1108,13 @@ def index_r(request):
             wait_var = 0
             wrap_var = 0
 
-            ic_5_var = 0
+            """ic_5_var = 0
             dl_5_var = 0
             ivr_5_var = 0
             sl_5_var = 0
             conv_5_var = 0
             wrap_5_var = 0
-            wait_5_var = 0
+            wait_5_var = 0"""
 
             """if len(check_flow) <= 168:
                 # period_flow = check_flow[0]
@@ -1120,7 +1125,7 @@ def index_r(request):
                 period_flow.pop('wrapup_duration')"""
             # count_flow = 0
             for flow in check_flow:
-                # count_flow
+                # computing kpi values
                 incoming += flow.incoming_calls
                 ic_var += flow.incoming_calls
                 ivr += flow.ivr
@@ -1129,6 +1134,7 @@ def index_r(request):
                 dl_var += flow.dealed_calls
                 sl_dealed_calls += flow.sl_dealed_calls
                 sl_var += flow.sl_dealed_calls
+
                 conv_var += flow.conv_duration
                 wait_var += flow.wait_duration
                 wrap_var += flow.wrapup_duration
@@ -1140,8 +1146,9 @@ def index_r(request):
                 wait_5_var = flow.wait_duration
                 wrap_5_var = flow.wrapup_duration
                 conv_5_var = flow.conv_duration
-                
-                if diff_date.days == 0 and distrib == 5 and flow.hour.hour_value == 7:
+
+                #Logic handled when the period flow is one day and distribution for 5 mins for a defined hour
+                if diff_date.days == 0 and distrib == 5 and flow.hour.hour_value == hour_value:
                     ic_bar.append(ic_5_var)
                     dl_bar.append(dl_5_var)
                     ivr_bar.append(ivr_5_var)
@@ -1155,20 +1162,8 @@ def index_r(request):
                         dmc_bar.append(0)
                         dpt_bar.append(0)
                     print("------------------5min----------------")
-
                 elif flow.mn.mn_value == 55:
-                    # visualize(
-                    #     flow,
-                    #     distrib,
-                    #     ic_var,
-                    #     dl_var,
-                    #     ivr_var,
-                    #     sl_var,
-                    #     wait_var,
-                    #     conv_var,
-                    #     wrap_var,
-                        
-                    # )
+                    #After an hour
                     # compute_graph_data(diff_date, distrib, flow.hour.hour_value)
                     if diff_date.days == 0 and distrib == 60:
                         ic_bar.append(ic_var)
@@ -1262,8 +1257,8 @@ def index_r(request):
             
             print(day_bar)
 
-            graph_json = graph(check_flow, ic_bar, dl_bar, ivr_bar, sl_line, distrib)
-            # dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar)
+            graph_json = graph(check_flow, ic_bar, dl_bar, ivr_bar, sl_line, distrib, hour_value)
+            dm_graph_json = dm_graph(check_flow, dma_bar, dmc_bar, dpt_bar, distrib, hour_value)
             # period_flow["offered_calls"] = offered
             period_flow["incoming_calls"] = incoming
             period_flow["dealed_calls"] = dealed
@@ -1357,7 +1352,7 @@ def index_r(request):
                 "message":cf_json,
                 "activity": activity,
                 "graph_json": graph_json,
-                # "dm_graph_json": dm_graph_json
+                "dm_graph_json": dm_graph_json
                 })
             # return render(request, 'results.html', {'flow': check_flow})
         
@@ -1371,7 +1366,7 @@ def index_r(request):
         return render(request, 'results.html', {'flow': data})"""
     else:
         form = FilterFlow()
-    return render(request, 'dashboard/index.html', {'form': form})
+    return render(request, 'dashboard/index.html', {'form': form, 'hours': list(range(7, 21))})
 
 
 

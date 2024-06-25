@@ -2,6 +2,7 @@
 {% extends 'base.html' %}
 {#  #}
 {% load static %}
+<!-- {% load custom_tags %} -->
 
 {% block content %}
     <div id="filter">
@@ -32,28 +33,28 @@
             {# <img src="{% static 'img/wait.png'%}" alt="Waiting time"> #}
             <img src="{% static 'img/wait.png'%}" alt="Waiting time">
             
-            <span class="nb">8</span>
+            <span class="nb"></span>
         </div>
         <div id="processed">
             <span>DMT</span>
             {# <img src="{% static 'img/time_processed.png'%}" alt="Time processed"> #}
             <img src="{% static 'img/time_processed.png'%}" alt="Time processed">
             
-            <span class="nb">110</span>
+            <span class="nb"></span>
         </div>
         <div id="post_process">
             <span>DPT</span>
             {# <img src="{% static 'img/post_process.png'%}" alt="Post"> #}
             <img src="{% static 'img/post_process.png'%}" alt="Post">
             
-            <span class="nb">10</span>
+            <span class="nb"></span>
         </div>
         <div id="com">
             <span>DMC</span>
             {# <img src="{% static 'img/call_time.png'%}" alt="Call time"> #}
             <img src="{% static 'img/call_time.png'%}" alt="Call time">
             
-            <span class="nb">120</span>
+            <span class="nb"></span>
         </div>
     </div>
     <hr>
@@ -65,12 +66,17 @@
         <form method="post" id="distrib_form" class="form-group">
             <select name="distrib" id="distrib" class="form-control" placeholder="Sélectionnez la distrib">
                 <!-- <option value>Selectionnez la distribution</option> -->
-                <option value="5"> 5 min</option>
+                <option value="5">min</option>
                 <!-- <option value="10"> 10 min</option>
                 <option value="15"> 15 min</option>
                 <option value="30"> 30 min</option> -->
                 <option value="60" selected> Heure</option>
                 <option value="1"> Jour</option>
+            </select>
+            <select name="distrib-hour" id="distrib-hour" class="form-control" style="display: none;">
+                {% for hour in hours%}
+                    <option value="{{hour}}">{{hour}}h</option>
+                {% endfor %}
             </select>
             <button class="btn btn-primary" id="view">Visualiser</button>
         </form>

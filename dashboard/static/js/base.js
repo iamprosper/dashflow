@@ -54,15 +54,23 @@ $(document).ready(function(){
 
     function getDistrib(event){
         distrib_value = event.target.value
+        if (distrib_value == 5){
+            // $("#distrib-hour").css()
+            document.getElementById("distrib-hour").style.display = "block"
+        }else{
+            document.getElementById("distrib-hour").style.display = "none"
+        }
         // console.log(`Distrib : ${distrib_value}`);
     }
     
     function getActivity(event){
         code = event.target.value;
         distrib_value = $("#distrib").val()
+        hour_value = $("#distrib-hour").val()
         console.log(`Code : ${code}`);
         console.log(`Activity : ${activity}`);
         console.log(`Distrib code: ${distrib_value}`)
+        console.log(`Distrib hour: ${hour_value}`)
     }
     
     $("#filter-btn").click(function(event){
@@ -89,7 +97,8 @@ $(document).ready(function(){
                     'activity': activity,
                     'start_date': min_selected_date,
                     'end_date': max_selected_date,
-                    'time_interval': distrib_value
+                    'time_interval': distrib_value,
+                    'hour_value': hour_value
             }
             if (min_selected_date){
                 // alert(min_selected_date)
@@ -107,7 +116,7 @@ $(document).ready(function(){
                         console.log(JSON.parse(response["message"]));
                         jsonResponse = JSON.parse(response["message"]);
                         graphJson = JSON.parse(response["graph_json"]);
-                        // dm_graph_json = JSON.parse(response["dm_graph_json"])
+                        dm_graph_json = JSON.parse(response["dm_graph_json"])
                         // document.querySelector("#graph").innerHTML = '';
                         activity = response["activity"];
                         // console.log(activity);
@@ -187,9 +196,9 @@ $(document).ready(function(){
         // $("#date").text(min_selected_date);
         $("#activity-name").text(activity);
         Plotly.purge('calls_and_sl');
-        // Plotly.purge('dms');
+        Plotly.purge('dms');
         Plotly.plot('calls_and_sl', graphJson.data, graphJson.layout);
-        // Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
+        Plotly.plot('dms', dm_graph_json.data, dm_graph_json.layout);
         // console.log(`Activity ${activity}`);
     }
 
