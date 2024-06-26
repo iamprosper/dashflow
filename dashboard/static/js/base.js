@@ -66,7 +66,6 @@ $(document).ready(function(){
     function getActivity(event){
         code = event.target.value;
         distrib_value = $("#distrib").val()
-        hour_value = $("#distrib-hour").val()
         console.log(`Code : ${code}`);
         console.log(`Activity : ${activity}`);
         console.log(`Distrib code: ${distrib_value}`)
@@ -76,6 +75,7 @@ $(document).ready(function(){
     $("#filter-btn").click(function(event){
         activity = $("#activity :selected").text();
         distrib_value = $("#distrib").val()
+        hour_value = $("#distrib-hour").val()
         event.preventDefault();
         console.log(cleared_dates);
         // console.log(dd);
