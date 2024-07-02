@@ -1381,7 +1381,7 @@ def process_data(form):
 
 
 def fill_db(request):
-    # load_inbound_per_5_min("media/uploads/2024-01.csv")
+    # load_inbound_per_5_min("media/uploads/01_30_06.csv")
     print("Data loaded")
     return render(request, 'dashboard/fill.html')
 
